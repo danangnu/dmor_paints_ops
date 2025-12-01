@@ -1,0 +1,207 @@
+/* ===== GLOBAL ===== */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background-color: #f4f4f4;
+}
+
+/* ===== TOP BLUE BAR ===== */
+.topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 52px;
+    background-color: #2f89b5;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 100;
+}
+
+.topbar-left {
+    display: flex;
+    align-items: center;
+}
+
+.logo-text {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.topbar-icon {
+    font-size: 18px;
+}
+
+.topbar-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #f0f0f0;
+    border: 2px solid #ffffff66;
+}
+
+/* ===== LAYOUT ===== */
+.layout {
+    display: flex;
+    margin-top: 52px;  /* below header */
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+    width: 56px;
+    background-color: #f8f8f8;
+    border-right: 1px solid #dcdcdc;
+    min-height: calc(100vh - 52px);
+}
+
+.sidebar ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.sidebar li {
+    text-align: center;
+}
+
+.sidebar a {
+    display: block;
+    padding: 14px 0;
+    color: #777;
+    text-decoration: none;
+}
+
+.sidebar a:hover {
+    background-color: #e5e5e5;
+}
+
+.side-icon {
+    font-size: 18px;
+}
+
+/* ===== MAIN AREA ===== */
+.main-area {
+    flex: 1;
+    padding: 16px 24px 40px 24px;
+}
+
+/* ===== OPERATION PANEL ===== */
+.op-panel {
+    background-color: #ffffff;
+    border: 1px solid #dde4ed;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.op-panel-header {
+    background-color: #f3f8ff;
+    border-bottom: 1px solid #dde4ed;
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.op-header-icon {
+    font-size: 18px;
+}
+
+.op-header-text {
+    font-weight: 500;
+    color: #3f6fa8;
+    font-size: 16px;
+}
+
+.op-panel-body {
+    padding: 20px 24px 28px 24px;
+}
+
+/* ===== TILE LAYOUT (2 ROWS) ===== */
+
+.tile {
+    width: 150px;
+    text-align: center;
+    flex: 0 0 150px;
+}
+
+.tile-outer {
+    width: 150px;
+    height: 150px;
+    border-radius: 4px;
+    background-color: #fafafa;
+    border: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tile-inner {
+    width: 120px;
+    height: 120px;
+    border-radius: 4px;
+    background-color: #ffffff;
+    border: 1px solid #f1f1f1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.tile-inner img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+}
+
+.tile-label {
+    margin-top: 4px;
+    background-color: #333333;
+    color: #ffffff;
+    font-size: 11px;
+    padding: 4px 6px;
+    min-width: 150px;
+    text-transform: uppercase;
+}
+
+/* ===== FOOTER ===== */
+.app-footer {
+    margin-top: 32px;
+    text-align: center;
+    font-size: 12px;
+    color: #777;
+}
+
+.op-panel-body {
+    padding: 20px 24px 28px 24px;
+    text-align: center;        /* center the wrapper block */
+}
+
+/* wrapper width = content; centered */
+.tiles-wrapper {
+    display: inline-block;
+    text-align: left;          /* inside the wrapper, align rows to the left */
+}
+
+/* rows themselves: left-aligned items */
+.tile-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;   /* <-- important: left, NOT center */
+    align-items: flex-start;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.tile-row.second-row {
+    margin-top: 8px;
+}

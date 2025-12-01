@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="op-panel">
+
+    <!-- OPERATION HEADER STRIP -->
+    <div class="op-panel-header">
+        <span class="op-header-icon">⚙️</span>
+        <span class="op-header-text">Operation</span>
+    </div>
+
+    <!-- BODY WITH TWO ROWS OF TILES -->
+    <div class="op-panel-body">
+
+        <!-- WRAPPER THAT WE CENTER AS A WHOLE -->
+        <div class="tiles-wrapper">
+
+            <!-- FIRST ROW: 6 tiles -->
+            <div class="tile-row">
+                {% for tile in row1 %}
+                    <div class="tile">
+                        <a href="{{ tile.url }}">
+                            <div class="tile-outer">
+                                <div class="tile-inner">
+                                    <img src="{% static tile.icon %}" alt="{{ tile.title }}">
+                                </div>
+                            </div>
+                        </a>
+                        <div class="tile-label">
+                            {{ tile.title }}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- SECOND ROW: 4 tiles, left-aligned under first row -->
+            <div class="tile-row second-row">
+                {% for tile in row2 %}
+                    <div class="tile">
+                        <a href="{{ tile.url }}">
+                            <div class="tile-outer">
+                                <div class="tile-inner">
+                                    <img src="{% static tile.icon %}" alt="{{ tile.title }}">
+                                </div>
+                            </div>
+                        </a>
+                        <div class="tile-label">
+                            {{ tile.title }}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+        </div>  <!-- /tiles-wrapper -->
+
+    </div>
+</div>
+
+<footer class="app-footer">
+    DMOR PAINTS Application © 2020-2021
+</footer>
+
+{% endblock %}

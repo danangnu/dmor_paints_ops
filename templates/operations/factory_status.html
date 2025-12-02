@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="factory-page">
+
+    <!-- PANEL HEADER (same style as other pages) -->
+    <div class="payment-section">
+        <div class="payment-section-header">
+            Factory Status
+        </div>
+
+        <!-- MAIN TABLE -->
+        <table class="payment-table factory-table">
+            <thead>
+            <tr>
+                <th>Order id</th>
+                <th>Name Of Company</th>
+                <th>Location</th>
+                <th>Sales Person</th>
+                <th>Delivery Expected Date</th>
+                <th>Time Spain</th>
+                <th>Order Remark</th>
+                <th>Factory Accepted</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for o in orders %}
+                <tr>
+                    <form method="post">
+                        {% csrf_token %}
+                        <td>{{ o.order_id }}</td>
+
+                        <!-- blue link style like DMOR -->
+                        <td class="factory-company">
+                            <a href="#">{{ o.company_name }}</a>
+                        </td>
+
+                        <td>{{ o.location }}</td>
+                        <td>{{ o.sales_person }}</td>
+
+                        <!-- editable date -->
+                        <td>
+                            <input type="date"
+                                   name="delivery_expected_date"
+                                   value="{{ o.delivery_expected_date|date:'Y-m-d' }}"
+                                   class="factory-input factory-input-date">
+                        </td>
+
+                        <!-- time span text -->
+                        <td>{{ o.time_span }}</td>
+
+                        <!-- editable remark -->
+                        <td>
+                            <input type="text"
+                                   name="remark"
+                                   value="{{ o.remark|default_if_none:'' }}"
+                                   class="factory-input factory-input-remark">
+                        </td>
+
+                        <!-- icon column -->
+                        <td class="center-cell">
+                            <button type="submit"
+                                    name="action"
+                                    value="toggle_accept"
+                                    class="icon-button"
+                                    title="Toggle Factory Accepted">
+                                {% if o.factory_accepted %}
+                                    <img src="{% static 'icons/bill_created.png' %}"
+                                         alt="Accepted"
+                                         class="factory-icon">
+                                {% else %}
+                                    <img src="{% static 'icons/on_hold.png' %}"
+                                         alt="Not accepted"
+                                         class="factory-icon">
+                                {% endif %}
+                            </button>
+                        </td>
+
+                        <input type="hidden" name="order_id" value="{{ o.id }}">
+                    </form>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="8" class="no-data">
+                        No factory orders yet.
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+{% endblock %}

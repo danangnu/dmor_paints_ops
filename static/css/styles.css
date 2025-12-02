@@ -7,6 +7,49 @@ html, body {
     background-color: #f4f4f4;
 }
 
+/* ===== FACTORY STATUS PAGE ===== */
+
+.factory-page {
+    margin-top: 10px;
+}
+
+/* we reuse .payment-section and .payment-table for panel + header look */
+
+.factory-table th {
+    /* just a tiny tweak if needed; keep same blue bar look */
+}
+
+.factory-company a {
+    color: #0059b3;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.factory-company a:hover {
+    text-decoration: underline;
+}
+
+.factory-input {
+    height: 26px;
+    font-size: 12px;
+    padding: 2px 4px;
+    border: 1px solid #cfd5e2;
+    border-radius: 0;
+}
+
+.factory-input-date {
+    width: 150px;
+}
+
+.factory-input-remark {
+    width: 220px;
+}
+
+.factory-icon {
+    width: 28px;
+    height: 28px;
+}
+
 /* ===== TOP BLUE BAR ===== */
 .topbar {
     position: fixed;
@@ -204,4 +247,304 @@ html, body {
 
 .tile-row.second-row {
     margin-top: 8px;
+}
+
+/* ===== ADD ORDER FORM PANEL ===== */
+
+.form-panel {
+    background-color: #ffffff;
+    border: 1px solid #e0e4ea;
+    margin-top: 8px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.form-header {
+    padding: 10px 18px;
+    background: linear-gradient(to bottom, #fdfdfd, #f3f3f3);
+    border-bottom: 1px solid #e0e4ea;
+    font-weight: 500;
+    color: #555;
+}
+
+.form-body {
+    padding: 18px 24px 24px 24px;
+    font-size: 13px;
+}
+
+.form-row {
+    margin-bottom: 16px;
+}
+
+.two-cols {
+    display: flex;
+    gap: 40px;
+}
+
+.col-half {
+    flex: 1;
+}
+
+.form-group {
+    margin-bottom: 8px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 4px;
+    color: #666;
+}
+
+.required {
+    color: #d9534f;
+    margin-right: 3px;
+}
+
+/* slimmer, flat-style inputs to mimic original design */
+.form-control.slim {
+    height: 32px;
+    padding: 4px 8px;
+    font-size: 13px;
+    border-radius: 0;
+    border: 1px solid #dadada;
+    box-shadow: none;
+}
+
+.form-control.slim:focus {
+    border-color: #2f89b5;
+    outline: none;
+    box-shadow: none;
+}
+
+.form-control.slim::placeholder {
+    color: #c7c7c7;
+}
+
+.form-separator {
+    margin: 18px 0 18px 0;
+    border-color: #eee;
+}
+
+.total-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.add-btn {
+    height: 32px;
+    padding: 0 18px;
+    font-size: 12px;
+    border-radius: 0;
+}
+
+.remark-row .full-width textarea.slim {
+    height: 60px;
+    resize: vertical;
+}
+
+.action-row {
+    margin-top: 16px;
+    display: flex;
+    gap: 8px;
+}
+
+.action-save {
+    padding: 4px 16px;
+    border-radius: 0;
+}
+
+.action-cancel {
+    padding: 4px 16px;
+    border-radius: 0;
+}
+
+/* ===== PAYMENT CLEARANCE PAGE ===== */
+
+.payment-page {
+    margin-top: 10px;
+}
+
+.payment-section {
+    background-color: #ffffff;
+    border: 1px solid #dde4ed;
+    margin-bottom: 18px;
+}
+
+.payment-section-header {
+    padding: 8px 16px;
+    background: #f5f7fb;
+    border-bottom: 1px solid #dde4ed;
+    font-weight: 500;
+    color: #4b6e9a;
+}
+
+.payment-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.payment-table th,
+.payment-table td {
+    border: 1px solid #c6d4e2;
+    padding: 6px 8px;
+}
+
+.payment-table th {
+    background-color: #1e88c8;
+    color: #fff;
+    font-weight: 500;
+    text-align: left;
+}
+
+.payment-table tbody tr:nth-child(even) {
+    background-color: #f9fbfd;
+}
+
+.payment-input {
+    width: 120px;
+    height: 26px;
+    font-size: 12px;
+    padding: 2px 4px;
+    border: 1px solid #cfd5e2;
+    border-radius: 0;
+}
+
+.center-cell {
+    text-align: center;
+}
+
+.icon-button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.icon-button img {
+    display: inline-block;
+}
+
+.no-data {
+    text-align: center;
+    padding: 10px;
+    color: #777;
+}
+
+.page-container {
+    padding: 20px;
+    background: #fff;
+}
+
+.section-title {
+    background: #e9f1fd;
+    padding: 12px 20px;
+    color: #264d73;
+    border-left: 4px solid #6c9cd3;
+    margin-bottom: 20px;
+    font-size: 20px;
+}
+
+.status-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.status-table th {
+    background: #2a79b8;
+    color: white;
+    padding: 10px;
+    font-size: 14px;
+}
+
+.status-table td {
+    border: 1px solid #cccccc;
+    padding: 10px;
+    font-size: 14px;
+}
+
+.blue-link {
+    color: #0b50b8;
+    font-weight: bold;
+}
+
+.status-icon {
+    width: 32px;
+    height: 32px;
+}
+
+.save-btn {
+    padding: 4px 12px;
+    background: #2a79b8;
+    color: white;
+    border: none;
+    border-radius: 4px;
+}
+
+.remark-input {
+    width: 150px;
+}
+
+/* ===== BOM PRODUCTION / BATCH PAGE ===== */
+
+.batch-page {
+    margin-top: 10px;
+}
+
+.batch-row {
+    margin: 10px 16px;
+}
+
+.batch-row label {
+    font-size: 13px;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.batch-row .form-control.slim {
+    width: 100%;
+}
+
+.batch-row.align-center {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+}
+
+.batch-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.batch-field.small {
+    width: 120px;
+}
+
+.batch-field.medium {
+    width: 180px;
+}
+
+.batch-field.large {
+    flex: 1;
+}
+
+.buttons-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.batch-grid th,
+.batch-grid td {
+    font-size: 12px;
+}
+
+.link-action {
+    color: #0b5ed7;
+    text-decoration: none;
+    font-size: 12px;
+}
+
+.link-action:hover {
+    text-decoration: underline;
 }

@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="payment-page">
+
+    <!-- SECTION 1: ORDER PAYMENT STATUS -->
+    <div class="payment-section">
+        <div class="payment-section-header">
+            Order Payment Status
+        </div>
+
+        <table class="payment-table">
+            <thead>
+            <tr>
+                <th>Order id</th>
+                <th>Name Of Company</th>
+                <th>Location</th>
+                <th>Sales Person</th>
+                <th>Order Created Date</th>
+                <th>Time Spain</th>
+                <th>Bill NO</th>
+                <th>Payment Cleard</th>
+                <th>Remark</th>
+                <th>Bill Created</th>
+                <th>On Hold</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for order in orders_active %}
+                <tr>
+                    <form method="post">
+                        {% csrf_token %}
+                        <td>{{ order.id }}</td>
+                        <td><a href="#">{{ order.company }}</a></td>
+                        <td>{{ order.location }}</td>
+                        <td>{{ order.sales_person }}</td>
+                        <td>{{ order.created_at|date:"m/d/Y g:i:s A" }}</td>
+                        <td>{{ order.time_since_created }}</td>
+
+                        <td>
+                            <input type="text" name="bill_no"
+                                   value="{{ order.bill_no|default_if_none:'' }}"
+                                   class="payment-input">
+                        </td>
+
+                        <td class="center-cell">
+                            <input type="checkbox" name="payment_cleared"
+                                   {% if order.payment_cleared %}checked{% endif %}>
+                        </td>
+
+                        <td>
+                            <input type="text" name="payment_remark"
+                                   value="{{ order.payment_remark|default_if_none:'' }}"
+                                   class="payment-input">
+                        </td>
+
+                        <!-- Bill Created icon = SAVE -->
+                        <td class="center-cell">
+                            <button type="submit" name="action" value="save" class="icon-button" title="Save">
+                                <img src="{% static 'icons/bill_created.png' %}" alt="Bill" width="26">
+                            </button>
+                        </td>
+
+                        <!-- ON HOLD button -->
+                        <td class="center-cell">
+                            <button type="submit" name="action" value="hold" class="icon-button" title="On Hold">
+                                <img src="{% static 'icons/on_hold.png' %}" alt="On Hold" width="40">
+                            </button>
+                        </td>
+
+                        <input type="hidden" name="order_id" value="{{ order.id }}">
+                    </form>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="11" class="no-data">No active orders.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- SECTION 2: ORDER PAYMENT ON HOLD -->
+    <div class="payment-section">
+        <div class="payment-section-header">
+            Order Payment On Hold
+        </div>
+
+        <table class="payment-table">
+            <thead>
+            <tr>
+                <th>Order id</th>
+                <th>Name Of Company</th>
+                <th>Location</th>
+                <th>Sales Person</th>
+                <th>Order Created Date</th>
+                <th>Time Spain</th>
+                <th>Bill NO</th>
+                <th>Payment Cleard</th>
+                <th>Remark</th>
+                <th>Bill Created</th>
+                <th>Cancel Order</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for order in orders_on_hold %}
+                <tr>
+                    <form method="post">
+                        {% csrf_token %}
+                        <td>{{ order.id }}</td>
+                        <td><a href="#">{{ order.company }}</a></td>
+                        <td>{{ order.location }}</td>
+                        <td>{{ order.sales_person }}</td>
+                        <td>{{ order.created_at|date:"m/d/Y g:i:s A" }}</td>
+                        <td>{{ order.time_since_created }}</td>
+
+                        <td>
+                            <input type="text" name="bill_no"
+                                   value="{{ order.bill_no|default_if_none:'' }}"
+                                   class="payment-input">
+                        </td>
+
+                        <td class="center-cell">
+                            <input type="checkbox" name="payment_cleared"
+                                   {% if order.payment_cleared %}checked{% endif %}>
+                        </td>
+
+                        <td>
+                            <input type="text" name="payment_remark"
+                                   value="{{ order.payment_remark|default_if_none:'' }}"
+                                   class="payment-input">
+                        </td>
+
+                        <!-- Bill Created icon = SAVE -->
+                        <td class="center-cell">
+                            <button type="submit" name="action" value="save" class="icon-button" title="Save">
+                                <img src="{% static 'icons/bill_created.png' %}" alt="Bill" width="26">
+                            </button>
+                        </td>
+
+                        <!-- CANCEL ORDER (remove hold) -->
+                        <td class="center-cell">
+                            <button type="submit" name="action" value="cancel_hold" class="icon-button" title="Cancel Hold">
+                                <img src="{% static 'icons/cancel_order.png' %}" alt="Cancel" width="40">
+                            </button>
+                        </td>
+
+                        <input type="hidden" name="order_id" value="{{ order.id }}">
+                    </form>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="11" class="no-data">No orders on hold.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+{% endblock %}

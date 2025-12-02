@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="form-panel">
+    <div class="form-header">
+        Add Order
+    </div>
+
+    <form method="post">
+    {% csrf_token %}
+
+        <div class="form-body">
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger py-1">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <!-- TOP 2-COLUMN CUSTOMER SECTION -->
+            <div class="form-row two-cols">
+                <div class="col-half">
+                    <div class="form-group">
+                        <label><span class="required">*</span> Company</label>
+                        {{ form.company }} {{ form.company.errors }}
+                    </div>
+                    <div class="form-group">
+                        <label><span class="required">*</span> Address</label>
+                        {{ form.address }} {{ form.address.errors }}
+                    </div>
+                    <div class="form-group">
+                        <label><span class="required">*</span> City</label>
+                        {{ form.city }} {{ form.city.errors }}
+                    </div>
+                    <div class="form-group">
+                        <label><span class="required">*</span> Mobile 2</label>
+                        {{ form.mobile2 }} {{ form.mobile2.errors }}
+                    </div>
+                </div>
+
+                <div class="col-half">
+                    <div class="form-group">
+                        <label><span class="required">*</span> Sales Person</label>
+                        {{ form.sales_person }} {{ form.sales_person.errors }}
+                    </div>
+                    <div class="form-group">
+                        <label><span class="required">*</span> Location</label>
+                        {{ form.location }} {{ form.location.errors }}
+                    </div>
+                    <div class="form-group">
+                        <label><span class="required">*</span> Mobile 1</label>
+                        {{ form.mobile1 }} {{ form.mobile1.errors }}
+                    </div>
+                </div>
+            </div>
+
+            <hr class="form-separator"/>
+
+            <!-- PRODUCT + PRICE SECTION -->
+            <div class="form-row two-cols">
+                <div class="col-half">
+                    <div class="form-group">
+                        <label>Product Name:</label>
+                        {{ form.product_name }} {{ form.product_name.errors }}
+                    </div>
+                    <div class="form-group">
+                        <label>Quantity:</label>
+                        {{ form.quantity }} {{ form.quantity.errors }}
+                    </div>
+                    <div class="form-group">
+                        <label>Discount Amount:</label>
+                        {{ form.discount_amount }} {{ form.discount_amount.errors }}
+                    </div>
+                </div>
+
+                <div class="col-half">
+                    <div class="form-group">
+                        <label>Price:</label>
+                        {{ form.price }} {{ form.price.errors }}
+                    </div>
+                    <div class="form-group">
+                        <label>Discount:</label>
+                        {{ form.discount }} {{ form.discount.errors }}
+                    </div>
+                    <div class="form-group total-row">
+                        <div>
+                            <label>Total Price:</label>
+                            {{ form.total_price }} {{ form.total_price.errors }}
+                        </div>
+
+                        <!-- Orange ADD button (does NOT submit for now) -->
+                        <button type="button" class="btn btn-warning add-btn">ADD</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REMARK ROW -->
+            <div class="form-row remark-row">
+                <div class="form-group full-width">
+                    <label>Remark</label>
+                    {{ form.remark }} {{ form.remark.errors }}
+                </div>
+            </div>
+
+            <!-- NEW: SAVE + CANCEL BUTTONS -->
+            <div class="form-row action-row">
+                <button type="submit" class="btn btn-success btn-sm action-save">
+                    Save
+                </button>
+                <a href="{% url 'operation_dashboard' %}"
+                class="btn btn-danger btn-sm action-cancel">
+                    Cancel
+                </a>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+{% endblock %}

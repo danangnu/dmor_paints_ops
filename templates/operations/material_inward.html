@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="material-inward-page">
+
+    <div class="payment-section">
+        <div class="payment-section-header">
+            Material Inword
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <!-- ROW 1 & 2: fields in two columns -->
+            <div class="form-row mat-row two-cols">
+                <div class="col-half">
+                    <label>
+                        <span class="required">*</span> Master Product
+                    </label>
+                    {{ form.master_product }}
+                    {{ form.master_product.errors }}
+                </div>
+
+                <div class="col-half">
+                    <label>
+                        <span class="required">*</span> Inward Date
+                    </label>
+                    {{ form.inward_date }}
+                    {{ form.inward_date.errors }}
+                </div>
+            </div>
+
+            <div class="form-row mat-row two-cols">
+                <div class="col-half">
+                    <label>
+                        <span class="required">*</span> Supplier
+                    </label>
+                    {{ form.supplier }}
+                    {{ form.supplier.errors }}
+                </div>
+
+                <div class="col-half">
+                    <label>
+                        <span class="required">*</span> Bill No
+                    </label>
+                    {{ form.bill_no }}
+                    {{ form.bill_no.errors }}
+                </div>
+            </div>
+
+            <!-- Remark -->
+            <div class="form-row mat-row">
+                {{ form.remark }}
+                {{ form.remark.errors }}
+            </div>
+
+            <!-- Buttons -->
+            <div class="form-row mat-row buttons-row">
+                <button type="submit" class="btn btn-success">
+                    Save
+                </button>
+                <a href="{% url 'operation_dashboard' %}" class="btn btn-danger">
+                    Close
+                </a>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+{% endblock %}

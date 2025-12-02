@@ -1,6 +1,6 @@
 # operations/forms.py
 from django import forms
-from .models import Order, Batch, BatchItem
+from .models import Order, Batch, BatchItem, Dispatch, Vehicle, MaterialInward, MasterProduct, Supplier
 
 class OrderForm(forms.ModelForm):
     class Meta:
@@ -138,3 +138,52 @@ class BatchItemForm(forms.ModelForm):
             "product": forms.TextInput(attrs={"class": "form-control slim", "placeholder": "Product"}),
             "qty": forms.NumberInput(attrs={"class": "form-control slim", "placeholder": "Qty"}),
         }
+
+class DispatchHeaderForm(forms.ModelForm):
+    class Meta:
+        model = Dispatch
+        fields = ["vehicle", "remark"]
+        widgets = {
+            "vehicle": forms.Select(attrs={"class": "form-control slim"}),
+            "remark": forms.Textarea(attrs={
+                "class": "form-control slim",
+                "rows": 3,
+                "placeholder": "Dispatch Remark",
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["vehicle"].empty_label = "Select"
+        self.fields["vehicle"].required = True
+
+class MaterialInwardForm(forms.ModelForm):
+    class Meta:
+        model = MaterialInward
+        fields = ["master_product", "supplier", "inward_date", "bill_no", "remark"]
+        widgets = {
+            "master_product": forms.Select(attrs={"class": "form-control slim"}),
+            "supplier": forms.Select(attrs={"class": "form-control slim", "placeholder": "Supplier"}),
+            "inward_date": forms.DateInput(
+                attrs={"class": "form-control slim", "type": "date"}
+            ),
+            "bill_no": forms.TextInput(
+                attrs={"class": "form-control slim", "placeholder": "Bill No"}
+            ),
+            "remark": forms.Textarea(
+                attrs={
+                    "class": "form-control slim",
+                    "rows": 3,
+                    "placeholder": "Remark",
+                }
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # red-star fields = required
+        for name in ["master_product", "supplier", "inward_date", "bill_no"]:
+            self.fields[name].required = True
+
+        self.fields["master_product"].empty_label = "Select"
+        self.fields["supplier"].empty_label = "Supplier"

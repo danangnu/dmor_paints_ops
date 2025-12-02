@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="dispatch-page">
+
+    <div class="payment-section">
+        <div class="payment-section-header">
+            Dispatch Order
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <!-- Vehicle row -->
+            <div class="form-row dispatch-row">
+                <div class="col-half">
+                    <label>
+                        <span class="required">*</span> Vehicle No
+                    </label>
+                    {{ header_form.vehicle }}
+                    {{ header_form.vehicle.errors }}
+                </div>
+            </div>
+
+            <!-- Remark -->
+            <div class="form-row dispatch-row">
+                {{ header_form.remark }}
+                {{ header_form.remark.errors }}
+            </div>
+
+            <!-- Load estimation info -->
+            {% if load_info %}
+                <div class="dispatch-load-info">
+                    Load estimation for {{ load_info.vehicle.number }}:
+                    <strong>{{ load_info.total_qty }}</strong> / {{ load_info.capacity }}
+                    ({{ load_info.percent|floatformat:1 }}%)
+                </div>
+            {% endif %}
+
+            <!-- Buttons -->
+            <div class="form-row dispatch-row buttons-row">
+                <button type="submit" name="action" value="estimate_load"
+                        class="btn btn-secondary">
+                    Estimate Load
+                </button>
+
+                <button type="submit" name="action" value="create_dispatch"
+                        class="btn btn-success">
+                    Create Dispatch
+                </button>
+            </div>
+
+            <!-- PENDING ITEMS TABLE -->
+            <table class="payment-table dispatch-grid">
+                <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Name Of Company</th>
+                    <th>Location</th>
+                    <th>Product</th>
+                    <th>Available Qty</th>
+                    <th>Qty</th>
+                    <th>Dispatch Date</th>
+                    <th>Dispatch Delay</th>
+                    <th>Bill No</th>
+                    <th>Select</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for item in pending_items %}
+                    <tr>
+                        <td>{{ item.order_id }}</td>
+                        <td><a href="#">{{ item.company_name }}</a></td>
+                        <td>{{ item.location }}</td>
+                        <td>{{ item.product }}</td>
+                        <td>{{ item.available_qty }}</td>
+                        <td>{{ item.qty }}</td>
+                        <td>
+                            {% if item.dispatch_date %}
+                                {{ item.dispatch_date|date:"d/m/Y" }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>{{ item.delay_text }}</td>
+                        <td>{{ item.bill_no }}</td>
+                        <td class="center-cell">
+                            <input type="checkbox" name="selected_items" value="{{ item.id }}">
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="10" class="no-data">No pending loads for dispatch.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </form>
+    </div>
+
+</div>
+
+{% endblock %}

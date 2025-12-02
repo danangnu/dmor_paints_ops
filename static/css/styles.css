@@ -548,3 +548,62 @@ html, body {
 .link-action:hover {
     text-decoration: underline;
 }
+
+/* ===== DISPATCH ORDER PAGE ===== */
+
+.dispatch-page {
+    margin-top: 10px;
+}
+
+.dispatch-row {
+    margin: 10px 16px;
+}
+
+.dispatch-load-info {
+    margin: 0 16px 10px 16px;
+    font-size: 13px;
+    color: #2e6f3e;
+}
+
+.dispatch-grid th,
+.dispatch-grid td {
+    font-size: 12px;
+}
+
+/* ===== MATERIAL INWORD PAGE ===== */
+
+.material-inward-page {
+    margin-top: 10px;
+}
+
+.mat-row {
+    margin: 10px 16px;
+}
+
+.mat-row.two-cols {
+    display: flex;
+    gap: 24px;
+}
+
+.mat-row.two-cols .col-half {
+    flex: 1;
+}
+
+.mat-row label {
+    font-size: 13px;
+    display: block;
+    margin-bottom: 4px;
+}
+
+/* in static/css/styles.css */
+.thead-blue th {
+    background: #2f7fbf;
+    color: #fff;
+    font-weight: 600;
+}
+
+.split-grid td,
+.split-grid th {
+    vertical-align: middle;
+    font-size: 13px;
+}

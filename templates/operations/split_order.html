@@ -1,0 +1,106 @@
+{# templates/operations/split_order.html #}
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-wrapper">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header-bar">
+        <span class="page-title">Split Order</span>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- REMARK + BUTTONS ROW -->
+        <div class="card mb-3">
+            <div class="card-body">
+
+                <div class="form-group">
+                    <label for="remark"><strong>Remark</strong></label>
+                    <textarea id="remark"
+                              name="remark"
+                              class="form-control"
+                              rows="2"
+                              placeholder="Enter remark for split / cancel (optional)"></textarea>
+                </div>
+
+                <div class="mt-3">
+                    <button type="submit"
+                            name="action"
+                            value="split"
+                            class="btn btn-success">
+                        Split Order
+                    </button>
+
+                    <button type="submit"
+                            name="action"
+                            value="cancel"
+                            class="btn btn-danger ml-2">
+                        Cancel Order
+                    </button>
+                </div>
+
+                {% if error %}
+                    <div class="alert alert-danger mt-3">{{ error }}</div>
+                {% endif %}
+                {% if message %}
+                    <div class="alert alert-success mt-3">{{ message }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ORDERS GRID -->
+        <div class="card">
+            <div class="card-body table-responsive">
+                <table class="table table-bordered table-sm split-grid">
+                    <thead class="thead-blue">
+                        <tr>
+                            <th style="width: 60px;">Order ID</th>
+                            <th>Name Of Company</th>
+                            <th>Location</th>
+                            <th>Product</th>
+                            <th style="width: 110px;">Available Qty</th>
+                            <th style="width: 90px;">Qty</th>
+                            <th style="width: 120px;">Dispatch Date</th>
+                            <th style="width: 160px;">Time Span</th>
+                            <th style="width: 80px;">Bill No</th>
+                            <th style="width: 60px;">Select</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                            <tr>
+                                <td>{{ order.id }}</td>
+                                <td>{{ order.company }}</td>
+                                <td>{{ order.location }}</td>
+                                <td>{{ order.product_name }}</td>
+                                <td class="text-right">{{ order.available_qty }}</td>
+                                <td class="text-right">{{ order.quantity }}</td>
+                                <td>
+                                    {% if order.dispatch_date %}
+                                        {{ order.dispatch_date|date:"d/m/Y" }}
+                                    {% endif %}
+                                </td>
+                                <td>{{ order.time_span }}</td>
+                                <td>{{ order.bill_no }}</td>
+                                <td class="text-center">
+                                    <input type="checkbox"
+                                           name="selected_orders"
+                                           value="{{ order.id }}">
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="10" class="text-center">
+                                    No orders found.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

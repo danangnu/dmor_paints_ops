@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div style="margin: 24px 32px 0 32px;">
+
+    <!-- HEADER STRIP -->
+    <div style="
+        background: #f5f7fb;
+        border: 1px solid #e2e6f0;
+        border-bottom: none;
+        padding: 10px 20px;
+        font-size: 16px;
+        font-weight: 600;
+        color: #444;
+    ">
+        Department Master
+    </div>
+
+    <!-- BODY CARD -->
+    <div style="
+        border: 1px solid #e2e6f0;
+        background: #fff;
+        padding: 20px;
+    ">
+        <div class="row">
+            <!-- LEFT: FORM -->
+            <div class="col-md-6">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label">
+                            <span style="color:red">*</span> Department
+                        </label>
+                        <div class="col-sm-8">
+                            {{ form.name }}
+                        </div>
+                    </div>
+
+                    <div class="mb-4 row">
+                        <label class="col-sm-4 col-form-label">
+                            <span style="color:red">*</span> Department Head
+                        </label>
+                        <div class="col-sm-8">
+                            {{ form.head }}
+                        </div>
+                    </div>
+
+                    <!-- BUTTONS (DMOR style colours) -->
+                    <div class="d-flex gap-2 mt-2">
+                        <button type="submit"
+                                name="action"
+                                value="new"
+                                style="min-width:80px; background:#1d72b8; color:#fff; border:none; padding:6px 14px;">
+                            New
+                        </button>
+                        <button type="submit"
+                                name="action"
+                                value="save"
+                                style="min-width:80px; background:#6aa84f; color:#fff; border:none; padding:6px 14px;">
+                            Save
+                        </button>
+                        <button type="submit"
+                                name="action"
+                                value="save"
+                                style="min-width:80px; background:#93c47d; color:#fff; border:none; padding:6px 14px;">
+                            Modify
+                        </button>
+                        <button type="button"
+                                style="min-width:80px; background:#f6b26b; color:#fff; border:none; padding:6px 14px;"
+                                disabled>
+                            Lock
+                        </button>
+                        <button type="submit"
+                                name="action"
+                                value="close"
+                                style="min-width:80px; background:#cc4125; color:#fff; border:none; padding:6px 14px;">
+                            Close
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- RIGHT: DEPARTMENT LIST -->
+            <div class="col-md-6">
+                <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                    <thead>
+                        <tr>
+                            <th style="background:#0c7db1; color:#fff; padding:6px 10px; text-align:left;">
+                                Department
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dept in departments %}
+                        <tr>
+                            <td style="
+                                padding:6px 10px;
+                                border:1px solid #d0d0d0;
+                                {% if selected_department and dept.id == selected_department.id %}
+                                    background:#d9d9d9;
+                                {% else %}
+                                    background:#ffffff;
+                                {% endif %}
+                            ">
+                                <a href="{% url 'department_edit' dept.id %}"
+                                   style="text-decoration:none; color:#004a80; font-weight:600;">
+                                    {{ dept.name|upper }}
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td style="padding:8px 10px; color:#888;">
+                                No departments yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="app-footer">
+    DMOR PAINTS Application © 2020-2021
+</footer>
+
+{% endblock %}

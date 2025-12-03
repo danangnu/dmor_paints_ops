@@ -1,6 +1,6 @@
 # operations/forms.py
 from django import forms
-from .models import Order, Batch, BatchItem, Dispatch, Vehicle, MaterialInward, MasterProduct, Supplier
+from .models import Order, Batch, BatchItem, Dispatch, Vehicle, MaterialInward, MasterProduct, Supplier, MaterialDiscard
 
 class OrderForm(forms.ModelForm):
     class Meta:
@@ -187,3 +187,26 @@ class MaterialInwardForm(forms.ModelForm):
 
         self.fields["master_product"].empty_label = "Select"
         self.fields["supplier"].empty_label = "Supplier"
+
+class MaterialDiscardForm(forms.ModelForm):
+    class Meta:
+        model = MaterialDiscard
+        fields = ["category", "remark"]
+        widgets = {
+            "category": forms.Select(
+                attrs={
+                    "class": "form-control",
+                }
+            ),
+            "remark": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": "Remark",
+                }
+            ),
+        }
+        labels = {
+            "category": "Category",
+            "remark": "Remark",
+        }

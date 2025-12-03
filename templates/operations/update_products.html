@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div style="margin:24px 32px 0 32px;">
+
+    <!-- HEADER BAR -->
+    <div style="
+        background:#f5f7fb;
+        border:1px solid #e2e6f0;
+        border-bottom:none;
+        padding:10px 20px;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        ">
+        <div style="font-size:16px;font-weight:600;color:#444;">
+            Update Product
+        </div>
+
+        <!-- Search Product -->
+        <form method="get" action="" style="margin:0;">
+            <input type="hidden" name="type" value="{{ current_type }}">
+            <input type="text"
+                   name="q"
+                   value="{{ q }}"
+                   placeholder="Search Product"
+                   style="
+                        padding:4px 8px;
+                        font-size:13px;
+                        border:1px solid #d0d5e5;
+                        border-radius:2px;
+                        width:220px;
+                   ">
+        </form>
+    </div>
+
+    <!-- MAIN CARD -->
+    <div style="
+        border:1px solid #e2e6f0;
+        border-top:none;
+        background:#ffffff;
+        padding:20px 24px 24px 24px;
+        ">
+
+        <!-- TYPE TABS: FG / RM / Packing -->
+        <div style="margin-bottom:20px; display:flex; gap:8px;">
+            <a href="?type=FG&q={{ q }}"
+               style="
+                    padding:6px 26px;
+                    background:{% if current_type == 'FG' %}#f0ad4e{% else %}#f5c980{% endif %};
+                    color:#fff;
+                    font-size:13px;
+                    font-weight:600;
+                    border-radius:2px;
+                    text-decoration:none;
+                    text-align:center;
+               ">
+                FG
+            </a>
+            <a href="?type=RM&q={{ q }}"
+               style="
+                    padding:6px 26px;
+                    background:{% if current_type == 'RM' %}#d9534f{% else %}#f07e7a{% endif %};
+                    color:#fff;
+                    font-size:13px;
+                    font-weight:600;
+                    border-radius:2px;
+                    text-decoration:none;
+                    text-align:center;
+               ">
+                RM
+            </a>
+            <a href="?type=PK&q={{ q }}"
+               style="
+                    padding:6px 26px;
+                    background:{% if current_type == 'PK' %}#5cb85c{% else %}#7bd07b{% endif %};
+                    color:#fff;
+                    font-size:13px;
+                    font-weight:600;
+                    border-radius:2px;
+                    text-decoration:none;
+                    text-align:center;
+               ">
+                Packing
+            </a>
+        </div>
+
+        <!-- RATES FORM -->
+        <form method="post" action="">
+            {% csrf_token %}
+            <input type="hidden" name="type" value="{{ current_type }}">
+            <input type="hidden" name="q" value="{{ q }}">
+
+            <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                <thead>
+                    <tr>
+                        <th style="background:#0c7db1;color:#fff;padding:6px 8px;text-align:left;border-right:1px solid #e2e6f0;">
+                            Code
+                        </th>
+                        <th style="background:#0c7db1;color:#fff;padding:6px 8px;text-align:left;border-right:1px solid #e2e6f0;">
+                            Product Name
+                        </th>
+                        <th style="background:#0c7db1;color:#fff;padding:6px 8px;text-align:right;border-right:1px solid #e2e6f0;">
+                            Selling Rate
+                        </th>
+                        <th style="background:#0c7db1;color:#fff;padding:6px 8px;text-align:right;">
+                            Purchase Rate
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in products %}
+                    <tr style="border-bottom:1px solid #f1f3f7;">
+                        <td style="padding:6px 8px;border-right:1px solid #f1f3f7;">
+                            {{ p.code }}
+                        </td>
+                        <td style="padding:6px 8px;border-right:1px solid #f1f3f7;">
+                            {{ p.name }}
+                        </td>
+                        <td style="padding:4px 8px;border-right:1px solid #f1f3f7;text-align:right;">
+                            <input type="number"
+                                   step="0.01"
+                                   name="selling_price_{{ p.id }}"
+                                   value="{{ p.selling_price }}"
+                                   style="
+                                        width:100px;
+                                        text-align:right;
+                                        padding:2px 4px;
+                                        font-size:12px;
+                                        border:1px solid #d0d5e5;
+                                   ">
+                        </td>
+                        <td style="padding:4px 8px;text-align:right;">
+                            <input type="number"
+                                   step="0.01"
+                                   name="purchase_price_{{ p.id }}"
+                                   value="{{ p.purchase_price }}"
+                                   style="
+                                        width:100px;
+                                        text-align:right;
+                                        padding:2px 4px;
+                                        font-size:12px;
+                                        border:1px solid #d0d5e5;
+                                   ">
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="padding:10px;text-align:center;color:#888;">
+                            No products found for this category.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Save / Close buttons -->
+            <div style="margin-top:24px;text-align:center;">
+                <button type="submit"
+                        style="
+                            padding:6px 26px;
+                            background:#5cb85c;
+                            color:#fff;
+                            font-size:13px;
+                            font-weight:600;
+                            border:none;
+                            border-radius:2px;
+                            margin-right:10px;
+                        ">
+                    Save
+                </button>
+
+                <a href="{% url 'operation_dashboard' %}"
+                   style="
+                        padding:6px 26px;
+                        background:#d9534f;
+                        color:#fff;
+                        font-size:13px;
+                        font-weight:600;
+                        border-radius:2px;
+                        text-decoration:none;
+                   ">
+                    Close
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

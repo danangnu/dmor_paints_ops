@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import OrderForm, BatchForm, BatchItemForm, DispatchHeaderForm, MaterialInwardForm
-from .models import Order, FactoryOrder, Batch, BatchItem, Dispatch, DispatchItem, Vehicle
+from .forms import OrderForm, BatchForm, BatchItemForm, DispatchHeaderForm, MaterialInwardForm, MaterialDiscardForm
+from .models import Order, FactoryOrder, Batch, BatchItem, Dispatch, DispatchItem, Vehicle, MaterialReturn, MasterProduct
+from django.db.models import Q
 from django.utils import timezone
 from django.contrib import messages
 from django.db import transaction
@@ -14,9 +15,9 @@ def operation_dashboard(request):
         {"title": "DISPATCH PLANNING",          "icon": "img/dispatch_planning.png",         "url": "/dispatch-order/"},
         {"title": "PM-MATERIAL INWORD",         "icon": "img/pm_material_inword.png",        "url": "/material-inward/"},
         {"title": "PM-SPLIT ORDER",             "icon": "img/pm_split_order.png",            "url": "/split-order/"},
-        {"title": "ADMIN-MATERIAL DISCARD",     "icon": "img/admin_material_discard.png",    "url": "#"},
-        {"title": "PM-RETURN INWORD",           "icon": "img/pm_return_inword.png",          "url": "#"},
-        {"title": "UPDATE PRODUCT",             "icon": "img/update_product.png",            "url": "#"},
+        {"title": "ADMIN-MATERIAL DISCARD",     "icon": "img/admin_material_discard.png",    "url": "/material-discard/"},
+        {"title": "PM-RETURN INWORD",           "icon": "img/pm_return_inword.png",          "url": "/material-inward-back/"},
+        {"title": "UPDATE PRODUCT",             "icon": "img/update_product.png",            "url": "/update-products/"},
     ]
 
     context = {
@@ -334,3 +335,105 @@ def split_or_cancel_order(request):
         "error": error,
     }
     return render(request, "operations/split_order.html", context)
+
+def material_discard(request):
+    """
+    Simple screen to log discarding either Raw Material (RM)
+    or Finished Goods (FG).
+    """
+    if request.method == "POST":
+        form = MaterialDiscardForm(request.POST)
+        if form.is_valid():
+            form.save()
+            # after save go back to dashboard (or wherever you like)
+            return redirect("dashboard")
+    else:
+        form = MaterialDiscardForm()
+
+    context = {
+        "form": form,
+        "page_title": "Material Discard",
+        "section_title": "Material Discard",
+    }
+    return render(request, "operations/material_discard.html", context)
+
+def material_inward_back(request):
+    returned_items = MaterialReturn.objects.order_by("-returned_at")
+
+    context = {
+        "returned_items": returned_items,
+        "page_title": "Inward Returned Material",
+    }
+    return render(request, "operations/material_inward_back.html", context)
+
+def update_products(request):
+    # Which tab? default FG
+    current_type = request.GET.get("type", "FG")
+    if current_type not in ("FG", "RM", "PK"):
+        current_type = "FG"
+
+    # Search query
+    q = request.GET.get("q", "").strip()
+
+    products = MasterProduct.objects.filter(product_type=current_type)
+    if q:
+        products = products.filter(
+            Q(name__icontains=q) | Q(code__icontains=q)
+        )
+
+    if request.method == "POST":
+        # We keep the same filter when saving
+        products = MasterProduct.objects.filter(product_type=current_type)
+        for p in products:
+            sp_field = f"selling_price_{p.id}"
+            pp_field = f"purchase_price_{p.id}"
+            sp_val = request.POST.get(sp_field)
+            pp_val = request.POST.get(pp_field)
+            if sp_val is not None and sp_val != "":
+                try:
+                    p.selling_price = sp_val
+                except ValueError:
+                    pass
+            if pp_val is not None and pp_val != "":
+                try:
+                    p.purchase_price = pp_val
+                except ValueError:
+                    pass
+            p.save()
+        # back to GET so refresh uses query params
+        return redirect(
+            f"{request.path}?type={current_type}&q={q}"
+        )
+
+    context = {
+        "products": products,
+        "current_type": current_type,
+        "q": q,
+    }
+    return render(request, "operations/update_products.html", context)
+
+def masters_dashboard(request):
+    """
+    Masters home – tiles for Department, Designation, Employee Master, etc.
+    """
+    row1 = [
+        {"title": "Department",        "icon": "img/master_department.png", "url": "#"},
+        {"title": "Designation",       "icon": "img/master_designation.png", "url": "#"},
+        {"title": "Employee Master",   "icon": "img/master_employee.png",    "url": "#"},
+        {"title": "Unit Master",       "icon": "img/master_unit.png",        "url": "#"},
+        {"title": "Master Product",    "icon": "img/master_product.png",     "url": "#"},
+        {"title": "Product Master",    "icon": "img/master_product_master.png", "url": "#"},
+    ]
+
+    row2 = [
+        {"title": "Terms and Conditions", "icon": "img/master_terms.png",      "url": "#"},
+        {"title": "ADD NEW CUSTOMER",     "icon": "img/master_customer.png",  "url": "#"},
+        {"title": "Product BOM",          "icon": "img/master_bom.png",       "url": "#"},
+        {"title": "PRODUCT DEVELOPMENT",  "icon": "img/master_development.png","url": "#"},
+    ]
+
+    context = {
+        "row1": row1,
+        "row2": row2,
+    }
+    return render(request, "operations/masters_dashboard.html", context)

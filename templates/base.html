@@ -28,8 +28,18 @@
     <!-- LEFT SIDEBAR -->
     <nav class="sidebar">
         <ul>
-            <li><a href="#"><span class="side-icon">🏠</span></a></li>
-            <li><a href="#"><span class="side-icon">📄</span></a></li>
+            <!-- 1st icon = Masters -->
+            <li>
+                <a href="{% url 'master_dashboard' %}">
+                    <span class="side-icon">🏠</span>
+                </a>
+            </li>
+            <!-- 2nd icon (paper) – your red-box icon -->
+            <li>
+                <a href="{% url 'operation_dashboard' %}">
+                    <span class="side-icon">📄</span>
+                </a>
+            </li>
             <li><a href="#"><span class="side-icon">👥</span></a></li>
             <li><a href="#"><span class="side-icon">📦</span></a></li>
             <li><a href="#"><span class="side-icon">📊</span></a></li>

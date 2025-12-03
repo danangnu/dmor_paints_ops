@@ -10,4 +10,7 @@ urlpatterns = [
     path("dispatch-order/", views.dispatch_order, name="dispatch_order"),
     path("material-inward/", views.material_inward, name="material_inward"),
     path("split-order/", views.split_or_cancel_order, name="split-order"),
+    path("material-discard/", views.material_discard, name="material_discard"),
+    path("material-inward-back/", views.material_inward_back, name="material_inward_back"),
+    path("update-products/", views.update_products, name="update_products"),
 ]

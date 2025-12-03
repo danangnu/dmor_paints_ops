@@ -1,7 +1,6 @@
 # operations/models.py
 
 from decimal import Decimal
-
 from django.db import models
 from django.core.validators import RegexValidator, MinValueValidator
 from django.utils import timezone
@@ -347,10 +346,37 @@ class DispatchItem(models.Model):
 # -------------------------------------------------------------------
 # Raw Material Inward models
 # -------------------------------------------------------------------
+non_negative = [MinValueValidator(0)]
 
 class MasterProduct(models.Model):
+    PRODUCT_TYPES = [
+        ("FG", "Finished Goods"),
+        ("RM", "Raw Material"),
+        ("PK", "Packing"),
+    ]
+
     name = models.CharField(max_length=200)
     code = models.CharField(max_length=50, blank=True)
+
+    # NEW FIELDS
+    product_type = models.CharField(
+        max_length=2,
+        choices=PRODUCT_TYPES,
+        default="FG",
+        db_index=True,
+    )
+    selling_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=non_negative,
+    )
+    purchase_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=non_negative,
+    )
 
     def __str__(self):
         return f"{self.code} - {self.name}" if self.code else self.name
@@ -377,3 +403,48 @@ class MaterialInward(models.Model):
 
     def __str__(self):
         return f"Inward #{self.id} - {self.master_product} from {self.supplier}"
+    
+# -------------------------------------------------------------------
+# Material Discard (RM or Finished Goods)
+# -------------------------------------------------------------------
+
+class MaterialDiscard(models.Model):
+    CATEGORY_CHOICES = [
+        ("RM", "Raw Material"),
+        ("FG", "Finished Goods"),
+    ]
+
+    category = models.CharField(
+        max_length=20,
+        choices=CATEGORY_CHOICES,
+    )
+    remark = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"Discard {self.get_category_display()} #{self.id}"
+    
+class MaterialReturn(models.Model):
+    order_id = models.IntegerField()
+    company_name = models.CharField(max_length=255)
+    location = models.CharField(max_length=255)
+    product = models.CharField(max_length=255)
+
+    dispatched_qty = models.DecimalField(max_digits=10, decimal_places=2)
+    returned_qty = models.DecimalField(max_digits=10, decimal_places=2)
+
+    vehicle = models.CharField(max_length=50, blank=True)
+    remark = models.TextField(blank=True)
+
+    returned_at = models.DateTimeField(default=timezone.now)
+
+    def time_span(self):
+        delta = timezone.now() - self.returned_at
+        days = delta.days
+        hours = delta.seconds // 3600
+        minutes = (delta.seconds % 3600) // 60
+        return f"{days} Days {hours} Hours {minutes} Minutes"
+
+    def __str__(self):
+        return f"Return {self.order_id} - {self.company_name}"

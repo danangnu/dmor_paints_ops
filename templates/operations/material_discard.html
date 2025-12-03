@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="content-wrapper">
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <h2 class="page-title">Material Discard</h2>
+    </div>
+
+    <!-- MAIN CARD -->
+    <div class="card card-main">
+        <div class="card-header">
+            <span class="card-title">Material Discard</span>
+        </div>
+
+        <div class="card-body">
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                <!-- FIRST ROW: Category -->
+                <div class="form-row">
+                    <div class="form-group col-4">
+                        <label class="required">
+                            Category
+                        </label>
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                            <div class="text-danger small">
+                                {{ form.category.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- REMARK -->
+                <div class="form-row">
+                    <div class="form-group col-12">
+                        <label>Remark</label>
+                        {{ form.remark }}
+                        {% if form.remark.errors %}
+                            <div class="text-danger small">
+                                {{ form.remark.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- BUTTONS -->
+                <div class="form-row buttons-row">
+                    <button type="submit" class="btn btn-success dmor-btn-green">
+                        Save
+                    </button>
+                    <a href="/" class="btn btn-danger dmor-btn-red">
+                        Close
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

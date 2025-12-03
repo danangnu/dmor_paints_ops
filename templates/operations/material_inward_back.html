@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div style="margin: 24px 32px 0 32px;">
+
+    <!-- SECTION HEADER -->
+    <div style="
+        background: #f5f7fb;
+        border: 1px solid #e2e6f0;
+        border-bottom: none;
+        padding: 10px 20px;
+        font-size: 16px;
+        font-weight: 600;
+        color: #444;
+    ">
+        Inward Returned Material
+    </div>
+
+    <!-- TABLE WRAPPER CARD -->
+    <div style="
+        border: 1px solid #e2e6f0;
+        border-top: none;
+        background: #ffffff;
+        padding: 12px 0 16px 0;
+    ">
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <thead>
+                <tr>
+                    <th style="background:#0c7db1; color:#fff; padding:8px 10px; text-align:left; border-right:1px solid #e2e6f0;">
+                        Order ID
+                    </th>
+                    <th style="background:#0c7db1; color:#fff; padding:8px 10px; text-align:left; border-right:1px solid #e2e6f0;">
+                        Name Of Company
+                    </th>
+                    <th style="background:#0c7db1; color:#fff; padding:8px 10px; text-align:left; border-right:1px solid #e2e6f0;">
+                        Location
+                    </th>
+                    <th style="background:#0c7db1; color:#fff; padding:8px 10px; text-align:left; border-right:1px solid #e2e6f0;">
+                        Product
+                    </th>
+                    <th style="background:#0c7db1; color:#fff; padding:8px 10px; text-align:left; border-right:1px solid #e2e6f0;">
+                        Vehicle
+                    </th>
+                    <th style="background:#0c7db1; color:#fff; padding:8px 10px; text-align:right; border-right:1px solid #e2e6f0;">
+                        Returned Qty
+                    </th>
+                    <th style="background:#0c7db1; color:#fff; padding:8px 10px; text-align:right; border-right:1px solid #e2e6f0;">
+                        Dispatch Qty
+                    </th>
+                    <th style="background:#0c7db1; color:#fff; padding:8px 10px; text-align:left; border-right:1px solid #e2e6f0;">
+                        Time Span
+                    </th>
+                    <th style="background:#0c7db1; color:#fff; padding:8px 10px; text-align:left; border-right:1px solid #e2e6f0;">
+                        Remark
+                    </th>
+                    <!-- NEW: Factory Accepted -->
+                    <th style="background:#0c7db1; color:#fff; padding:8px 10px; text-align:center;">
+                        Factory Accepted
+                    </th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for item in returned_items %}
+                <tr style="border-bottom:1px solid #eef1f6;">
+                    <td style="padding:6px 10px; border-right:1px solid #f1f3f7;">
+                        {{ item.order_id }}
+                    </td>
+                    <td style="padding:6px 10px; border-right:1px solid #f1f3f7;">
+                        {{ item.company_name }}
+                    </td>
+                    <td style="padding:6px 10px; border-right:1px solid #f1f3f7;">
+                        {{ item.location }}
+                    </td>
+                    <td style="padding:6px 10px; border-right:1px solid #f1f3f7;">
+                        {{ item.product }}
+                    </td>
+                    <td style="padding:6px 10px; border-right:1px solid #f1f3f7;">
+                        {{ item.vehicle }}
+                    </td>
+                    <td style="padding:6px 10px; border-right:1px solid #f1f3f7; text-align:right;">
+                        {{ item.returned_qty }}
+                    </td>
+                    <td style="padding:6px 10px; border-right:1px solid #f1f3f7; text-align:right;">
+                        {{ item.dispatched_qty }}
+                    </td>
+                    <td style="padding:6px 10px; border-right:1px solid #f1f3f7;">
+                        {{ item.time_span }}
+                    </td>
+                    <td style="padding:6px 10px; border-right:1px solid #f1f3f7;">
+                        {{ item.remark }}
+                    </td>
+                    <!-- NEW CELL: show icon if accepted -->
+                    <td style="padding:6px 10px; text-align:center;">
+                        {% if item.factory_accepted %}
+                            <!-- ACCEPTED icon -->
+                            <img src="{% static 'img/factory_accepted.png' %}"
+                                alt="Accepted"
+                                style="height:20px;width:20px;">
+                        {% else %}
+                            <!-- NOT ACCEPTED icon -->
+                            <img src="{% static 'img/factory_not_accepted.png' %}"
+                                alt="Not accepted"
+                                style="height:20px;width:20px; opacity:0.7;">
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="10" style="padding:10px; text-align:center; color:#888;">
+                        No returned material found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

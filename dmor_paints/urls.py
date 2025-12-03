@@ -18,6 +18,6 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('operations.urls')),  # root = dashboard
+    path("", include("masters.urls")),   
+    path("operations/", include('operations.urls')),  # root = dashboard
 ]

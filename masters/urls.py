@@ -8,4 +8,5 @@ urlpatterns = [
     # Department Master
     path("departments/", views.department_master, name="department_master"),
     path("departments/<int:pk>/", views.department_master, name="department_edit"),
+    path("employee-master/", views.employee_master, name="employee_master"),
 ]

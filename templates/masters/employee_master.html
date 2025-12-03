@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div style="margin: 24px 32px 0 32px;">
+
+    <!-- HEADER STRIP -->
+    <div style="
+        background:#f5f7fb;
+        border:1px solid #e2e6f0;
+        border-bottom:none;
+        padding:10px 20px;
+        font-size:16px;
+        font-weight:600;
+        color:#444;
+    ">
+        Employee Details
+    </div>
+
+    <!-- MAIN CARD -->
+    <div style="
+        border:1px solid #e2e6f0;
+        border-top:none;
+        background:#ffffff;
+        padding:16px 20px 20px 20px;
+    ">
+
+        <form method="post">
+            {% csrf_token %}
+            {% if form.instance.pk %}
+                <input type="hidden" name="pk" value="{{ form.instance.pk }}">
+            {% endif %}
+
+            <div class="row">
+                <!-- LEFT COLUMN -->
+                <div class="col-md-6">
+
+                    <div class="mb-2">
+                        <label class="form-label">Employee Id <span style="color:red">*</span></label>
+                        {{ form.employee_id }}
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label">Prefix <span style="color:red">*</span></label>
+                        {{ form.prefix }}
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label">Middle Name</label>
+                        {{ form.middle_name }}
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label">Mobile No <span style="color:red">*</span></label>
+                        {{ form.mobile_no }}
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label">Emp DOB</label>
+                        {{ form.emp_dob }}
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label">Emp Type <span style="color:red">*</span></label>
+                        {{ form.emp_type }}
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label">Department <span style="color:red">*</span></label>
+                        {{ form.department }}
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label">User Name <span style="color:red">*</span></label>
+                        {{ form.username }}
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN -->
+                <div class="col-md-6">
+
+                    <div class="mb-2">
+                        <label class="form-label">First Name <span style="color:red">*</span></label>
+                        {{ form.first_name }}
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label">Last Name</label>
+                        {{ form.last_name }}
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label">Email Id</label>
+                        {{ form.email }}
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label">Joining Date <span style="color:red">*</span></label>
+                        {{ form.joining_date }}
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label">Current Branch</label>
+                        {{ form.current_branch }}
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label">Designation</label>
+                        {{ form.designation }}
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label">Password <span style="color:red">*</span></label>
+                        {{ form.password }}
+                        <div style="margin-top:4px;">
+                            <!-- just visual; real show/hide can be JS later -->
+                            <label style="font-size:12px;color:#666;">
+                                <input type="checkbox" onclick="
+                                    const p=this.closest('div').previousElementSibling.querySelector('input');
+                                    p.type = (p.type==='password') ? 'text' : 'password';
+                                ">
+                                Show Password
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BUTTON ROW -->
+            <div style="margin-top:20px;">
+                <button type="submit" name="btn_new"
+                        class="btn btn-primary"
+                        style="min-width:90px; background:#1b76c4; border-color:#1b76c4;">
+                    New
+                </button>
+
+                <button type="submit" name="btn_save"
+                        class="btn btn-success"
+                        style="min-width:90px; margin-left:8px; background:#6aa84f; border-color:#6aa84f;">
+                    Save
+                </button>
+
+                <button type="button"
+                        class="btn btn-info"
+                        style="min-width:90px; margin-left:8px; background:#3d85c6; border-color:#3d85c6;"
+                        disabled>
+                    Search
+                </button>
+
+                <button type="button"
+                        class="btn btn-secondary"
+                        style="min-width:90px; margin-left:8px; background:#93c47d; border-color:#93c47d;"
+                        disabled>
+                    Modify
+                </button>
+
+                <button type="submit" name="btn_close"
+                        class="btn btn-danger"
+                        style="min-width:90px; margin-left:8px; background:#cc4125; border-color:#cc4125;">
+                    Close
+                </button>
+            </div>
+        </form>
+
+        <!-- RIGHT SIDE LIST (below, but you can float it if you like) -->
+        <div style="margin-top:24px;">
+            <table class="table table-sm table-bordered" style="font-size:13px;">
+                <thead>
+                    <tr style="background:#0c7db1; color:#fff;">
+                        <th style="width:120px;">Employee Id</th>
+                        <th>Name</th>
+                        <th>Department</th>
+                        <th>Mobile</th>
+                        <th style="width:80px;">Edit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for emp in employees %}
+                    <tr>
+                        <td>{{ emp.employee_id }}</td>
+                        <td>{{ emp.full_name }}</td>
+                        <td>{{ emp.department.name }}</td>
+                        <td>{{ emp.mobile_no }}</td>
+                        <td class="text-center">
+                            <a href="?id={{ emp.id }}" class="btn btn-xs btn-outline-primary btn-sm">
+                                Edit
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">
+                            No employees yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -5,19 +5,20 @@ from django.db.models import Q
 from django.utils import timezone
 from django.contrib import messages
 from django.db import transaction
+from django.urls import reverse 
 
 def operation_dashboard(request):
     tiles = [
-        {"title": "CREATE ORDER",               "icon": "img/create_order.png",              "url": "/create-order/"},
-        {"title": "ADMIN-ACCOUNTS CLEARANCE",   "icon": "img/admin_accounts_clearance.png",  "url": "/payments/"},
-        {"title": "PM-ORDER ACCEPTANCE",        "icon": "img/pm_order_acceptance.png",       "url": "/factory-status/"},
-        {"title": "PM-PREPARE BATCH CHART",     "icon": "img/pm_prepare_batch_chart.png",    "url": "/bom-production/"},
-        {"title": "DISPATCH PLANNING",          "icon": "img/dispatch_planning.png",         "url": "/dispatch-order/"},
-        {"title": "PM-MATERIAL INWORD",         "icon": "img/pm_material_inword.png",        "url": "/material-inward/"},
-        {"title": "PM-SPLIT ORDER",             "icon": "img/pm_split_order.png",            "url": "/split-order/"},
-        {"title": "ADMIN-MATERIAL DISCARD",     "icon": "img/admin_material_discard.png",    "url": "/material-discard/"},
-        {"title": "PM-RETURN INWORD",           "icon": "img/pm_return_inword.png",          "url": "/material-inward-back/"},
-        {"title": "UPDATE PRODUCT",             "icon": "img/update_product.png",            "url": "/update-products/"},
+        {"title": "CREATE ORDER",               "icon": "img/create_order.png",              "url": reverse("create_order")},
+        {"title": "ADMIN-ACCOUNTS CLEARANCE",   "icon": "img/admin_accounts_clearance.png",  "url": reverse("payment_clearance")},
+        {"title": "PM-ORDER ACCEPTANCE",        "icon": "img/pm_order_acceptance.png",       "url": reverse("factory_status")},
+        {"title": "PM-PREPARE BATCH CHART",     "icon": "img/pm_prepare_batch_chart.png",    "url": reverse("bom_production")},
+        {"title": "DISPATCH PLANNING",          "icon": "img/dispatch_planning.png",         "url": reverse("dispatch_order")},
+        {"title": "PM-MATERIAL INWORD",         "icon": "img/pm_material_inword.png",        "url": reverse("material_inward")},
+        {"title": "PM-SPLIT ORDER",             "icon": "img/pm_split_order.png",            "url": reverse("split_order")},
+        {"title": "ADMIN-MATERIAL DISCARD",     "icon": "img/admin_material_discard.png",    "url": reverse("material_discard")},
+        {"title": "PM-RETURN INWORD",           "icon": "img/pm_return_inword.png",          "url": reverse("material_inward_back")},
+        {"title": "UPDATE PRODUCT",             "icon": "img/update_product.png",            "url": reverse("update_products")},
     ]
 
     context = {

@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div style="margin: 24px 32px 0 32px;">
+
+    <!-- HEADER STRIP -->
+    <div style="
+        background:#f5f7fb;
+        border:1px solid #e2e6f0;
+        border-bottom:none;
+        padding:10px 20px;
+        font-size:16px;
+        font-weight:600;
+        color:#444;
+    ">
+        Product Master
+    </div>
+
+    <!-- BODY CARD -->
+    <div style="
+        border:1px solid #e2e6f0;
+        border-top:none;
+        background:#ffffff;
+        padding:20px 24px 24px 24px;
+    ">
+
+        <div style="display:flex; gap:32px; align-items:flex-start;">
+
+            <!-- LEFT: FORM -->
+            <div style="flex:0 0 40%; max-width:420px;">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div style="margin-bottom:12px;">
+                        <label style="display:block; font-size:13px; margin-bottom:4px;">
+                            <span style="color:red;">*</span>
+                            Product Name
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div style="color:#d9534f; font-size:12px; margin-top:4px;">
+                                {{ form.name.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- BUTTON ROW -->
+                    <div style="margin-top:20px;">
+                        <!-- NEW button (dummy for now) -->
+                        <button type="button" style="
+                            min-width:80px;
+                            padding:6px 16px;
+                            margin-right:8px;
+                            border:none;
+                            background:#337ab7;
+                            color:#fff;
+                            font-size:13px;
+                        ">
+                            New
+                        </button>
+
+                        <!-- SAVE (real submit) -->
+                        <button type="submit" style="
+                            min-width:80px;
+                            padding:6px 16px;
+                            margin-right:8px;
+                            border:none;
+                            background:#5cb85c;
+                            color:#fff;
+                            font-size:13px;
+                        ">
+                            Save
+                        </button>
+
+                        <!-- MODIFY (not wired yet) -->
+                        <button type="button" style="
+                            min-width:80px;
+                            padding:6px 16px;
+                            margin-right:8px;
+                            border:none;
+                            background:#a5d6a7;
+                            color:#fff;
+                            font-size:13px;
+                        ">
+                            Modify
+                        </button>
+
+                        <!-- CLOSE -->
+                        <a href="{% url 'master_dashboard' %}" style="
+                            display:inline-block;
+                            min-width:80px;
+                            padding:6px 16px;
+                            text-align:center;
+                            background:#d9534f;
+                            color:#fff;
+                            font-size:13px;
+                            text-decoration:none;
+                        ">
+                            Close
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- RIGHT: TABLE -->
+            <div style="flex:1;">
+                <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                    <thead>
+                        <tr>
+                            <th style="background:#0c7db1; color:#fff; padding:8px 10px; text-align:left; border-right:1px solid #e2e6f0; width:120px;">
+                                Product ID
+                            </th>
+                            <th style="background:#0c7db1; color:#fff; padding:8px 10px; text-align:left;">
+                                Product Name
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in products %}
+                            <tr style="border-bottom:1px solid #eef1f6;">
+                                <td style="padding:6px 10px; border-right:1px solid #f1f3f7;">
+                                    {{ p.id }}
+                                </td>
+                                <td style="padding:6px 10px;">
+                                    {{ p.name }}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="2" style="padding:10px; text-align:center; color:#888;">
+                                    No products defined yet.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<footer class="app-footer">
+    DMOR PAINTS Application © 2020-2021
+</footer>
+
+{% endblock %}

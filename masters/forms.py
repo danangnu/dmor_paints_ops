@@ -1,6 +1,6 @@
 # masters/forms.py
 from django import forms
-from .models import Employee, Department
+from .models import Department, Employee, Unit, Product
 
 class DepartmentForm(forms.ModelForm):
     class Meta:
@@ -62,4 +62,30 @@ class EmployeeForm(forms.ModelForm):
             "current_branch": forms.TextInput(attrs={"class": "form-control"}),
             "designation": forms.TextInput(attrs={"class": "form-control"}),
             "password": forms.PasswordInput(attrs={"class": "form-control"}),
+        }
+
+class DepartmentForm(forms.ModelForm):
+    class Meta:
+        model = Department
+        fields = ["name", "head"]
+
+
+class UnitForm(forms.ModelForm):
+    class Meta:
+        model = Unit
+        fields = ["name"]
+        labels = {"name": "Unit"}
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Unit"})
+        }
+
+class ProductForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = ["name"]
+        widgets = {
+            "name": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Product Name",
+            })
         }

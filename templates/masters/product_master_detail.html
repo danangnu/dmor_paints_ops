@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div style="margin: 24px 32px 0 32px;">
+
+    <!-- HEADER BAR -->
+    <div style="
+        background:#f5f7fb;
+        border:1px solid #e2e6f0;
+        border-bottom:none;
+        padding:10px 20px;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        font-size:16px;
+        font-weight:600;
+        color:#444;
+    ">
+        <span>Product Master</span>
+
+        <form method="get" style="margin:0;">
+            <input type="text"
+                   name="q"
+                   value="{{ search }}"
+                   placeholder="Search Product"
+                   style="
+                     width:260px;
+                     padding:4px 8px;
+                     border:1px solid #d0d4e0;
+                     border-radius:2px;
+                     font-size:13px;
+                   ">
+        </form>
+    </div>
+
+    <!-- BODY CARD -->
+    <div style="
+        border:1px solid #e2e6f0;
+        border-top:none;
+        background:#ffffff;
+        padding:16px 20px 20px 20px;
+    ">
+
+        <!-- FORM -->
+        <form method="post" style="margin-bottom:18px;">
+            {% csrf_token %}
+
+            <div style="display:flex; gap:40px;">
+
+                <!-- LEFT COLUMN -->
+                <div style="flex:1;">
+                    <div style="margin-bottom:10px;">
+                        <label style="font-size:13px;">* Select Product</label><br>
+                        <select name="base_product"
+                                style="width:100%; padding:4px 6px; font-size:13px;
+                                       border:1px solid #d0d4e0;">
+                            <option value="">Select</option>
+                            {% for p in products %}
+                                <option value="{{ p.id }}">{{ p.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom:10px;">
+                        <label style="font-size:13px;">* Unit</label><br>
+                        <select name="unit"
+                                style="width:100%; padding:4px 6px; font-size:13px;
+                                       border:1px solid #d0d4e0;">
+                            <option value="">Select</option>
+                            {% for u in units %}
+                                <option value="{{ u.id }}">{{ u.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom:10px;">
+                        <label style="font-size:13px;">* Pack Qty</label><br>
+                        <input type="text" name="pack_qty"
+                               style="width:100%; padding:4px 6px; font-size:13px;
+                                      border:1px solid #d0d4e0;">
+                    </div>
+
+                    <div style="margin-bottom:10px;">
+                        <label style="font-size:13px;">* Incentive</label><br>
+                        <input type="text" name="incentive"
+                               style="width:100%; padding:4px 6px; font-size:13px;
+                                      border:1px solid #d0d4e0;">
+                    </div>
+
+                    <div style="margin-bottom:10px;">
+                        <label style="font-size:13px;">* Solid</label><br>
+                        <input type="text" name="solid"
+                               style="width:100%; padding:4px 6px; font-size:13px;
+                                      border:1px solid #d0d4e0;">
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN -->
+                <div style="flex:1;">
+                    <div style="margin-bottom:10px;">
+                        <label style="font-size:13px;">* Product Name</label><br>
+                        <input type="text" name="product_name_display"
+                               placeholder="(auto – same as selected product)"
+                               disabled
+                               style="width:100%; padding:4px 6px; font-size:13px;
+                                      border:1px solid #e0e0e0; background:#f8f8f8;">
+                    </div>
+
+                    <div style="margin-bottom:10px;">
+                        <label style="font-size:13px;">* Selling Price</label><br>
+                        <input type="text" name="selling_price"
+                               style="width:100%; padding:4px 6px; font-size:13px;
+                                      border:1px solid #d0d4e0;">
+                    </div>
+
+                    <div style="margin-bottom:10px;">
+                        <label style="font-size:13px;">* Packed In</label><br>
+                        <input type="text" name="packed_in"
+                               style="width:100%; padding:4px 6px; font-size:13px;
+                                      border:1px solid #d0d4e0;">
+                    </div>
+
+                    <div style="margin-bottom:10px;">
+                        <label style="font-size:13px;">* Min Stock Level</label><br>
+                        <input type="text" name="min_stock_level"
+                               style="width:100%; padding:4px 6px; font-size:13px;
+                                      border:1px solid #d0d4e0;">
+                    </div>
+
+                    <div style="margin-bottom:10px;">
+                        <label style="font-size:13px;">* Raw Material Cost</label><br>
+                        <input type="text" name="raw_material_cost"
+                               style="width:100%; padding:4px 6px; font-size:13px;
+                                      border:1px solid #d0d4e0;">
+                    </div>
+
+                    <div style="margin-bottom:10px;">
+                        <label style="font-size:13px;">* Density</label><br>
+                        <input type="text" name="density"
+                               style="width:100%; padding:4px 6px; font-size:13px;
+                                      border:1px solid #d0d4e0;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- BUTTON ROW -->
+            <div style="margin-top:16px; text-align:center;">
+                <button type="button"
+                        onclick="window.location.href=window.location.href;"
+                        style="min-width:80px; margin-right:6px;
+                               background:#2f6fb6; color:#fff; border:none;
+                               padding:6px 14px; font-size:13px;">
+                    New
+                </button>
+
+                <button type="submit"
+                        style="min-width:80px; margin-right:6px;
+                               background:#5cb85c; color:#fff; border:none;
+                               padding:6px 14px; font-size:13px;">
+                    Save
+                </button>
+
+                <button type="button"
+                        disabled
+                        style="min-width:80px; margin-right:6px;
+                               background:#a6c7a6; color:#fff; border:none;
+                               padding:6px 14px; font-size:13px;">
+                    Update
+                </button>
+
+                <button type="button"
+                        disabled
+                        style="min-width:80px; margin-right:6px;
+                               background:#2f6fb6; color:#fff; border:none;
+                               padding:6px 14px; font-size:13px;">
+                    Export
+                </button>
+
+                <a href="{% url 'master_dashboard' %}"
+                   style="min-width:80px; display:inline-block;
+                          background:#d9534f; color:#fff; text-decoration:none;
+                          padding:6px 14px; font-size:13px;">
+                    Close
+                </a>
+            </div>
+        </form>
+
+        <!-- GRID -->
+        <div style="margin-top:20px;">
+            <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                <thead>
+                    <tr>
+                        <th style="background:#0c7db1;color:#fff;padding:6px 8px;text-align:left;">Product ID</th>
+                        <th style="background:#0c7db1;color:#fff;padding:6px 8px;text-align:left;">Product Name</th>
+                        <th style="background:#0c7db1;color:#fff;padding:6px 8px;text-align:right;">Price</th>
+                        <th style="background:#0c7db1;color:#fff;padding:6px 8px;text-align:left;">Master Product Name</th>
+                        <th style="background:#0c7db1;color:#fff;padding:6px 8px;text-align:left;">Unit</th>
+                        <th style="background:#0c7db1;color:#fff;padding:6px 8px;text-align:left;">Company Name</th>
+                        <th style="background:#0c7db1;color:#fff;padding:6px 8px;text-align:center;">Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in rows %}
+                    <tr style="border-bottom:1px solid #eef1f6;">
+                        <td style="padding:6px 8px;">{{ r.id }}</td>
+                        <td style="padding:6px 8px;">{{ r.base_product.name }}</td>
+                        <td style="padding:6px 8px; text-align:right;">
+                            {{ r.selling_price|default_if_none:"" }}
+                        </td>
+                        <td style="padding:6px 8px;">
+                            {{ r.base_product.name }}
+                        </td>
+                        <td style="padding:6px 8px;">
+                            {% if r.unit %}
+                                {{ r.unit.name }}
+                            {% endif %}
+                        </td>
+                        <td style="padding:6px 8px;">
+                            {{ r.company_name }}
+                        </td>
+                        <td style="padding:6px 8px; text-align:center;">
+                            <!-- delete not wired yet -->
+                            <span style="color:#999;">🗑</span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7"
+                            style="padding:10px; text-align:center; color:#888;">
+                            No product master records yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

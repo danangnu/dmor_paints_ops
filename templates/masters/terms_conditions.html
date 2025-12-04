@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div style="margin: 24px 32px 0 32px;">
+
+    <!-- SECTION HEADER -->
+    <div style="
+        background:#f5f7fb;
+        border:1px solid #e2e6f0;
+        border-bottom:none;
+        padding:10px 20px;
+        font-size:16px;
+        font-weight:600;
+        color:#444;
+    ">
+        Terms and Conditions
+    </div>
+
+    <!-- BODY CARD -->
+    <div style="
+        border:1px solid #e2e6f0;
+        border-top:none;
+        background:#ffffff;
+        padding:16px 20px 20px 20px;
+    ">
+
+        <form method="post" action="">
+            {% csrf_token %}
+
+            <!-- Hidden pk for update -->
+            <input type="hidden" name="term_pk"
+                   value="{% if editing %}{{ editing.id }}{% endif %}">
+
+            <div style="display:flex; gap:40px; align-items:flex-start;">
+
+                <!-- LEFT: FORM -->
+                <div style="flex:1;">
+                    <!-- Term ID (read-only) -->
+                    <div style="margin-bottom:10px;">
+                        <label style="font-size:13px; color:#555;">
+                            <span style="color:red">*</span> Term ID
+                        </label>
+                        <input type="text"
+                               class="form-control"
+                               style="height:30px; font-size:13px;"
+                               value="{% if editing %}{{ editing.id|add:'0'|slice:'2' }}{% endif %}"
+                               readonly>
+                    </div>
+
+                    <!-- Term Name -->
+                    <div style="margin-bottom:10px;">
+                        <label style="font-size:13px; color:#555;">
+                            <span style="color:red">*</span> Term
+                        </label>
+                        <input type="text"
+                               name="term_name"
+                               class="form-control"
+                               style="height:30px; font-size:13px;"
+                               value="{% if editing %}{{ editing.term_name }}{% endif %}"
+                               placeholder="Term Name">
+                    </div>
+
+                    <!-- Conditions -->
+                    <div style="margin-bottom:10px;">
+                        <label style="font-size:13px; color:#555;">
+                            <span style="color:red">*</span> Conditions
+                        </label>
+                        <textarea name="conditions"
+                                  class="form-control"
+                                  style="font-size:13px; min-height:70px;"
+                                  placeholder="Conditions text here">{% if editing %}{{ editing.description }}{% endif %}</textarea>
+                    </div>
+
+                    <!-- BUTTONS -->
+                    <div style="margin-top:16px;">
+                        <!-- New just clears via GET -->
+                        <a href="{% url 'terms_conditions' %}"
+                           class="btn btn-primary"
+                           style="min-width:80px; background:#2872c8; border-color:#2872c8;">
+                            New
+                        </a>
+
+                        <button type="submit"
+                                class="btn btn-success"
+                                style="min-width:80px; background:#6ab46a; border-color:#6ab46a;">
+                            {% if editing %}Update{% else %}Save{% endif %}
+                        </button>
+
+                        <a href="{% url 'master_dashboard' %}"
+                           class="btn btn-danger"
+                           style="min-width:80px; background:#d9534f; border-color:#d9534f;">
+                            Close
+                        </a>
+                    </div>
+                </div>
+
+                <!-- RIGHT: TABLE -->
+                <div style="flex:1.4;">
+                    <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                        <thead>
+                        <tr>
+                            <th style="background:#0c7db1; color:#fff; padding:6px 8px; text-align:left; width:70px;">
+                                Sr. No.
+                            </th>
+                            <th style="background:#0c7db1; color:#fff; padding:6px 8px; text-align:left;">
+                                Term
+                            </th>
+                            <th style="background:#0c7db1; color:#fff; padding:6px 8px; text-align:left;">
+                                Conditions
+                            </th>
+                            <th style="background:#0c7db1; color:#fff; padding:6px 8px; text-align:center; width:70px;">
+                                Delete
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for t in terms %}
+                            <tr style="border-bottom:1px solid #eef1f6;">
+                                <td style="padding:6px 8px;">{{ forloop.counter|stringformat:"02d" }}</td>
+                                <td style="padding:6px 8px;">
+                                    <a href="?edit={{ t.id }}" style="color:#1669c1; text-decoration:none;">
+                                        {{ t.term_name }}
+                                    </a>
+                                </td>
+                                <td style="padding:6px 8px;">
+                                    {{ t.description }}
+                                </td>
+                                <td style="padding:0 4px; text-align:center;">
+                                    <form method="post" action="" style="display:inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="delete_id" value="{{ t.id }}">
+                                        <button type="submit"
+                                                style="background:none; border:none; padding:0; cursor:pointer;">
+                                            <span style="font-size:18px; color:#d9534f;">🗑️</span>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4" style="padding:8px; text-align:center; color:#888;">
+                                    No terms defined yet.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

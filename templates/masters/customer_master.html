@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div style="margin:24px 32px 0 32px;">
+
+    <!-- HEADER -->
+    <div style="
+        background:#f5f7fb;
+        border:1px solid #e2e6f0;
+        border-bottom:none;
+        padding:10px 20px;
+        font-size:16px;
+        font-weight:600;
+        color:#444;
+    ">
+        Add Customer
+    </div>
+
+    <!-- BODY CARD -->
+    <div style="
+        border:1px solid #e2e6f0;
+        border-top:none;
+        background:#ffffff;
+        padding:16px 20px 20px 20px;
+    ">
+
+        <form method="post" action="">
+            {% csrf_token %}
+            <input type="hidden" name="customer_pk"
+                   value="{% if editing %}{{ editing.id }}{% endif %}">
+
+            <div style="display:flex; gap:40px;">
+
+                <!-- LEFT COLUMN -->
+                <div style="flex:1;">
+                    <!-- Company -->
+                    <div class="mb-2">
+                        <label style="font-size:13px;color:#555;">
+                            <span style="color:red">*</span> Company
+                        </label>
+                        <input type="text" name="company_name"
+                               class="form-control"
+                               style="height:30px;font-size:13px;"
+                               value="{% if editing %}{{ editing.company_name }}{% endif %}"
+                               placeholder="Name Of Company">
+                    </div>
+
+                    <!-- Sales Person -->
+                    <div class="mb-2">
+                        <label style="font-size:13px;color:#555;">
+                            <span style="color:red">*</span> Sales Person
+                        </label>
+                        <select name="sales_person"
+                                class="form-control"
+                                style="height:30px;font-size:13px;">
+                            <option value="">Select</option>
+                            {% for sp in sales_people %}
+                                <option value="{{ sp.id }}"
+                                    {% if editing and editing.sales_person_id == sp.id %}selected{% endif %}>
+                                    {{ sp.full_name|default:sp.first_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Address -->
+                    <div class="mb-2">
+                        <label style="font-size:13px;color:#555;">
+                            <span style="color:red">*</span> Address
+                        </label>
+                        <input type="text" name="address"
+                               class="form-control"
+                               style="height:30px;font-size:13px;"
+                               value="{% if editing %}{{ editing.address }}{% endif %}"
+                               placeholder="Address">
+                    </div>
+
+                    <!-- City -->
+                    <div class="mb-2">
+                        <label style="font-size:13px;color:#555;">
+                            <span style="color:red">*</span> City
+                        </label>
+                        <input type="text" name="city"
+                               class="form-control"
+                               style="height:30px;font-size:13px;"
+                               value="{% if editing %}{{ editing.city }}{% endif %}"
+                               placeholder="City">
+                    </div>
+
+                    <!-- Landline -->
+                    <div class="mb-2">
+                        <label style="font-size:13px;color:#555;">Landline No</label>
+                        <input type="text" name="landline_no"
+                               class="form-control"
+                               style="height:30px;font-size:13px;"
+                               value="{% if editing %}{{ editing.landline_no }}{% endif %}">
+                    </div>
+
+                    <!-- Manager -->
+                    <div class="mb-2">
+                        <label style="font-size:13px;color:#555;">Manager</label>
+                        <input type="text" name="manager_name"
+                               class="form-control"
+                               style="height:30px;font-size:13px;"
+                               value="{% if editing %}{{ editing.manager_name }}{% endif %}"
+                               placeholder="Name of Contact Person">
+                    </div>
+
+                    <!-- Email -->
+                    <div class="mb-2">
+                        <label style="font-size:13px;color:#555;">Email id</label>
+                        <input type="email" name="email"
+                               class="form-control"
+                               style="height:30px;font-size:13px;"
+                               value="{% if editing %}{{ editing.email }}{% endif %}"
+                               placeholder="Email ID">
+                    </div>
+
+                    <!-- Proprietor DOB -->
+                    <div class="mb-2">
+                        <label style="font-size:13px;color:#555;">Proprietor DOB</label>
+                        <input type="date" name="proprietor_dob"
+                               class="form-control"
+                               style="height:30px;font-size:13px;"
+                               value="{% if editing and editing.proprietor_dob %}{{ editing.proprietor_dob|date:'Y-m-d' }}{% endif %}">
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN -->
+                <div style="flex:1;">
+                    <!-- Company Size -->
+                    <div class="mb-2">
+                        <label style="font-size:13px;color:#555;">
+                            <span style="color:red">*</span> Company Size
+                        </label>
+                        <select name="company_size"
+                                class="form-control"
+                                style="height:30px;font-size:13px;">
+                            <option value="">Select</option>
+                            {% for value,label in COMPANY_SIZE_CHOICES %}
+                                <option value="{{ value }}"
+                                    {% if editing and editing.company_size == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Location -->
+                    <div class="mb-2">
+                        <label style="font-size:13px;color:#555;">
+                            <span style="color:red">*</span> Location
+                        </label>
+                        <input type="text" name="location"
+                               class="form-control"
+                               style="height:30px;font-size:13px;"
+                               value="{% if editing %}{{ editing.location }}{% endif %}"
+                               placeholder="Location">
+                    </div>
+
+                    <!-- GST No -->
+                    <div class="mb-2">
+                        <label style="font-size:13px;color:#555;">GST NO</label>
+                        <input type="text" name="gst_no"
+                               class="form-control"
+                               style="height:30px;font-size:13px;"
+                               value="{% if editing %}{{ editing.gst_no }}{% endif %}">
+                    </div>
+
+                    <!-- Proprietor Name -->
+                    <div class="mb-2">
+                        <label style="font-size:13px;color:#555;">Proprietor Name</label>
+                        <input type="text" name="proprietor_name"
+                               class="form-control"
+                               style="height:30px;font-size:13px;"
+                               value="{% if editing %}{{ editing.proprietor_name }}{% endif %}">
+                    </div>
+
+                    <!-- Mobile 1 -->
+                    <div class="mb-2">
+                        <label style="font-size:13px;color:#555;">Mobile No 1</label>
+                        <input type="text" name="mobile_no1"
+                               class="form-control"
+                               style="height:30px;font-size:13px;"
+                               value="{% if editing %}{{ editing.mobile_no1 }}{% endif %}">
+                    </div>
+
+                    <!-- Mobile 2 -->
+                    <div class="mb-2">
+                        <label style="font-size:13px;color:#555;">Mobile No 2</label>
+                        <input type="text" name="mobile_no2"
+                               class="form-control"
+                               style="height:30px;font-size:13px;"
+                               value="{% if editing %}{{ editing.mobile_no2 }}{% endif %}">
+                    </div>
+
+                    <!-- Reference Name -->
+                    <div class="mb-2">
+                        <label style="font-size:13px;color:#555;">Refrance Name</label>
+                        <input type="text" name="reference_name"
+                               class="form-control"
+                               style="height:30px;font-size:13px;"
+                               value="{% if editing %}{{ editing.reference_name }}{% endif %}"
+                               placeholder="Enter Refrance Name">
+                    </div>
+                </div>
+            </div>
+
+            <!-- BUTTONS -->
+            <div style="margin-top:18px; text-align:center;">
+                <button type="submit"
+                        class="btn btn-success"
+                        style="min-width:90px;background:#6ab46a;border-color:#6ab46a;">
+                    Save
+                </button>
+
+                <a href="{% url 'master_dashboard' %}"
+                   class="btn btn-danger"
+                   style="min-width:90px;background:#d9534f;border-color:#d9534f;">
+                    Close
+                </a>
+            </div>
+
+            <!-- LIST GRID -->
+            <div style="margin-top:24px;">
+                <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                    <thead>
+                    <tr>
+                        <th style="background:#0c7db1;color:#fff;padding:6px 8px;width:70px;">Sr. No.</th>
+                        <th style="background:#0c7db1;color:#fff;padding:6px 8px;">Company</th>
+                        <th style="background:#0c7db1;color:#fff;padding:6px 8px;">City</th>
+                        <th style="background:#0c7db1;color:#fff;padding:6px 8px;">Location</th>
+                        <th style="background:#0c7db1;color:#fff;padding:6px 8px;">Mobile No 1</th>
+                        <th style="background:#0c7db1;color:#fff;padding:6px 8px;">Sales Person</th>
+                        <th style="background:#0c7db1;color:#fff;padding:6px 8px;width:70px;text-align:center;">Delete</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for c in customers %}
+                        <tr style="border-bottom:1px solid #eef1f6;">
+                            <td style="padding:6px 8px;">{{ forloop.counter|stringformat:"02d" }}</td>
+                            <td style="padding:6px 8px;">
+                                <a href="?edit={{ c.id }}"
+                                   style="color:#1669c1;text-decoration:none;">
+                                    {{ c.company_name }}
+                                </a>
+                            </td>
+                            <td style="padding:6px 8px;">{{ c.city }}</td>
+                            <td style="padding:6px 8px;">{{ c.location }}</td>
+                            <td style="padding:6px 8px;">{{ c.mobile_no1 }}</td>
+                            <td style="padding:6px 8px;">
+                                {{ c.sales_person.full_name|default_if_none:"" }}
+                            </td>
+                            <td style="padding:0 4px;text-align:center;">
+                                <form method="post" action="" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="delete_id" value="{{ c.id }}">
+                                    <button type="submit"
+                                            style="background:none;border:none;padding:0;cursor:pointer;">
+                                        <span style="font-size:18px;color:#d9534f;">🗑️</span>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7"
+                                style="padding:8px;text-align:center;color:#888;">
+                                No Records found
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </form>
+    </div>
+</div>
+{% endblock %}

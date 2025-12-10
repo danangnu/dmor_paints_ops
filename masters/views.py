@@ -265,6 +265,14 @@ def product_master_detail(request):
     }
     return render(request, "masters/product_master_detail.html", context)
 
+def product_master_detail_delete(request, pk):
+    if request.method == "POST":
+        obj = get_object_or_404(ProductMaster, pk=pk)
+        obj.delete()
+        messages.success(request, "Product master record deleted.")
+    # whether it was POST or not, go back to the listing
+    return redirect("product_master_detail")
+
 def terms_conditions(request):
     """
     Master screen for Terms & Conditions.

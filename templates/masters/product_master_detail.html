@@ -220,8 +220,19 @@
                             {{ r.company_name }}
                         </td>
                         <td style="padding:6px 8px; text-align:center;">
-                            <!-- delete not wired yet -->
-                            <span style="color:#999;">🗑</span>
+                            <form method="post"
+                                action="{% url 'product_master_detail_delete' r.id %}"
+                                style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        style="background:none;border:none;cursor:pointer;padding:0;"
+                                        onclick="return confirm('Delete this product master record?');"
+                                        title="Delete">
+                                    <img src="{% static 'img/bin.png' %}"
+                                        alt="Delete"
+                                        style="width:16px;height:16px;display:inline-block;vertical-align:middle;">
+                                </button>
+                            </form>
                         </td>
                     </tr>
                     {% empty %}

@@ -12,6 +12,11 @@ urlpatterns = [
     path("units/", views.unit_master, name="unit_master"),
     path("product-master/", views.product_master, name="product_master"),
     path("product-master-detail/", views.product_master_detail, name="product_master_detail"),
+    path(
+        "product-master-detail/<int:pk>/delete/",
+        views.product_master_detail_delete,
+        name="product_master_detail_delete",
+    ),
     path("terms-conditions/", views.terms_conditions, name="terms_conditions"),
     path("customers/", views.customer_master, name="customer_master"),
     path("product-bom/", views.product_bom_master, name="product_bom_master"),

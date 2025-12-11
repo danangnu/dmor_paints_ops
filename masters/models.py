@@ -126,6 +126,15 @@ class ProductMaster(models.Model):
     - pack qty / unit
     - stock & density
     """
+    INVENTORY_TYPE_FINISHED = "FG"
+    INVENTORY_TYPE_PACKING = "PM"
+    INVENTORY_TYPE_RAW = "RM"
+
+    INVENTORY_TYPE_CHOICES = [
+        (INVENTORY_TYPE_FINISHED, "Finished Goods"),
+        (INVENTORY_TYPE_PACKING, "Packing Material"),
+        (INVENTORY_TYPE_RAW, "Raw Material"),
+    ]
 
     base_product = models.ForeignKey(
         "Product",
@@ -133,6 +142,7 @@ class ProductMaster(models.Model):
         related_name="master_records",
         verbose_name="Select Product",
     )
+
     unit = models.ForeignKey(
         "Unit",
         on_delete=models.PROTECT,
@@ -156,6 +166,7 @@ class ProductMaster(models.Model):
         blank=True,
         default=Decimal("0.00"),
     )
+
     solid = models.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -171,12 +182,14 @@ class ProductMaster(models.Model):
         blank=True,
         verbose_name="Selling Price",
     )
+
     packed_in = models.CharField(
-        max_length=50,
+        max_length=100,
         blank=True,
         verbose_name="Packed In",
         help_text="e.g. Tin / Bucket / Drum",
     )
+
     min_stock_level = models.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -184,6 +197,7 @@ class ProductMaster(models.Model):
         blank=True,
         verbose_name="Min Stock Level",
     )
+
     raw_material_cost = models.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -191,6 +205,7 @@ class ProductMaster(models.Model):
         blank=True,
         verbose_name="Raw Material Cost",
     )
+
     density = models.DecimalField(
         max_digits=10,
         decimal_places=3,
@@ -199,8 +214,15 @@ class ProductMaster(models.Model):
     )
 
     company_name = models.CharField(
-        max_length=100,
+        max_length=255,
         default="DMOR PAINTS",
+        blank=True,
+    )
+
+    inventory_type = models.CharField(
+        max_length=2,
+        choices=INVENTORY_TYPE_CHOICES,
+        default=INVENTORY_TYPE_FINISHED,
     )
 
     is_active = models.BooleanField(default=True)
@@ -211,7 +233,7 @@ class ProductMaster(models.Model):
         verbose_name_plural = "Product Masters"
 
     def __str__(self):
-        return f"{self.base_product.name} ({self.unit or ''})"
+        return f"{self.base_product.name} ({self.get_inventory_type_display()})"
     
 class TermCondition(models.Model):
     term_name = models.CharField("Term", max_length=200)

@@ -62,6 +62,21 @@
                         </select>
                     </div>
 
+                    <!-- NEW: Inventory Type -->
+                    <div style="margin-bottom:10px;">
+                        <label style="font-size:13px;">* Inventory Type</label><br>
+                        <select id="inventory_type" name="inventory_type"
+                                style="width:100%; padding:4px 6px; font-size:13px;
+                                    border:1px solid #d0d4e0;">
+                            {% for code, label in INVENTORY_TYPE_CHOICES %}
+                                <option value="{{ code }}"
+                                    {% if code == current_inventory_type %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
                     <div style="margin-bottom:10px;">
                         <label style="font-size:13px;">* Unit</label><br>
                         <select name="unit"
@@ -88,11 +103,13 @@
                                       border:1px solid #d0d4e0;">
                     </div>
 
-                    <div style="margin-bottom:10px;">
+                    <!-- SOLID row with ID -->
+                    <div id="row_solid" style="margin-bottom:10px;">
                         <label style="font-size:13px;">* Solid</label><br>
-                        <input type="text" name="solid"
-                               style="width:100%; padding:4px 6px; font-size:13px;
-                                      border:1px solid #d0d4e0;">
+                        <input type="number" step="0.01" inputmode="decimal"
+                            name="solid"
+                            style="width:100%; padding:4px 6px; font-size:13px;
+                                    border:1px solid #d0d4e0;">
                     </div>
                 </div>
 
@@ -109,37 +126,54 @@
 
                     <div style="margin-bottom:10px;">
                         <label style="font-size:13px;">* Selling Price</label><br>
-                        <input type="text" name="selling_price"
-                               style="width:100%; padding:4px 6px; font-size:13px;
-                                      border:1px solid #d0d4e0;">
+                        <input type="number"
+                            name="selling_price"
+                            step="0.01"
+                            inputmode="decimal"
+                            style="width:100%; padding:4px 6px; font-size:13px;
+                                    border:1px solid #d0d4e0;">
                     </div>
 
-                    <div style="margin-bottom:10px;">
+                    <!-- PACKED IN row with ID, now dropdown -->
+                    <div id="row_packed_in" style="margin-bottom:10px;">
                         <label style="font-size:13px;">* Packed In</label><br>
-                        <input type="text" name="packed_in"
-                               style="width:100%; padding:4px 6px; font-size:13px;
-                                      border:1px solid #d0d4e0;">
+                        <select name="packed_in"
+                                style="width:100%; padding:4px 6px; font-size:13px;
+                                       border:1px solid #d0d4e0;">
+                            <option value="">Select</option>
+                            {% for opt in packed_in_choices %}
+                                <option value="{{ opt }}">{{ opt }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
 
                     <div style="margin-bottom:10px;">
                         <label style="font-size:13px;">* Min Stock Level</label><br>
-                        <input type="text" name="min_stock_level"
-                               style="width:100%; padding:4px 6px; font-size:13px;
-                                      border:1px solid #d0d4e0;">
+                        <input type="number"
+                            name="min_stock_level"
+                            step="0.01"
+                            inputmode="decimal"
+                            style="width:100%; padding:4px 6px; font-size:13px;
+                                    border:1px solid #d0d4e0;">
                     </div>
 
                     <div style="margin-bottom:10px;">
                         <label style="font-size:13px;">* Raw Material Cost</label><br>
-                        <input type="text" name="raw_material_cost"
-                               style="width:100%; padding:4px 6px; font-size:13px;
-                                      border:1px solid #d0d4e0;">
+                        <input type="number"
+                            name="raw_material_cost"
+                            step="0.01"
+                            inputmode="decimal"
+                            style="width:100%; padding:4px 6px; font-size:13px;
+                                    border:1px solid #d0d4e0;">
                     </div>
 
-                    <div style="margin-bottom:10px;">
+                    <!-- DENSITY row with ID -->
+                    <div id="row_density" style="margin-bottom:10px;">
                         <label style="font-size:13px;">* Density</label><br>
-                        <input type="text" name="density"
-                               style="width:100%; padding:4px 6px; font-size:13px;
-                                      border:1px solid #d0d4e0;">
+                        <input type="number" step="0.001" inputmode="decimal"
+                            name="density"
+                            style="width:100%; padding:4px 6px; font-size:13px;
+                                    border:1px solid #d0d4e0;">
                     </div>
                 </div>
             </div>
@@ -196,7 +230,6 @@
                         <th style="background:#0c7db1;color:#fff;padding:6px 8px;text-align:right;">Price</th>
                         <th style="background:#0c7db1;color:#fff;padding:6px 8px;text-align:left;">Master Product Name</th>
                         <th style="background:#0c7db1;color:#fff;padding:6px 8px;text-align:left;">Unit</th>
-                        <th style="background:#0c7db1;color:#fff;padding:6px 8px;text-align:left;">Company Name</th>
                         <th style="background:#0c7db1;color:#fff;padding:6px 8px;text-align:center;">Delete</th>
                     </tr>
                 </thead>
@@ -216,28 +249,25 @@
                                 {{ r.unit.name }}
                             {% endif %}
                         </td>
-                        <td style="padding:6px 8px;">
-                            {{ r.company_name }}
-                        </td>
                         <td style="padding:6px 8px; text-align:center;">
                             <form method="post"
-                                action="{% url 'product_master_detail_delete' r.id %}"
-                                style="display:inline;">
+                                  action="{% url 'product_master_detail_delete' r.id %}"
+                                  style="display:inline;">
                                 {% csrf_token %}
                                 <button type="submit"
                                         style="background:none;border:none;cursor:pointer;padding:0;"
                                         onclick="return confirm('Delete this product master record?');"
                                         title="Delete">
                                     <img src="{% static 'img/bin.png' %}"
-                                        alt="Delete"
-                                        style="width:16px;height:16px;display:inline-block;vertical-align:middle;">
+                                         alt="Delete"
+                                         style="width:16px;height:16px;display:inline-block;vertical-align:middle;">
                                 </button>
                             </form>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7"
+                        <td colspan="6"
                             style="padding:10px; text-align:center; color:#888;">
                             No product master records yet.
                         </td>
@@ -249,4 +279,55 @@
 
     </div>
 </div>
+
+<!-- JS: show/hide fields based on inventory type -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const inventorySelect = document.getElementById('inventory_type');
+    const densityRow = document.getElementById('row_density');
+    const solidRow = document.getElementById('row_solid');
+    const packedInRow = document.getElementById('row_packed_in');
+
+    if (!inventorySelect) return;
+
+    function updateFormFields() {
+        const type = inventorySelect.value;
+
+        if (type === 'RM') {
+            // Raw Material → show density & solids, hide packed in
+            if (densityRow) densityRow.style.display = 'block';
+            if (solidRow) solidRow.style.display = 'block';
+            if (packedInRow) packedInRow.style.display = 'none';
+        } else {
+            // Finished Goods / Packing Material → packed in only
+            if (densityRow) densityRow.style.display = 'none';
+            if (solidRow) solidRow.style.display = 'none';
+            if (packedInRow) packedInRow.style.display = 'block';
+        }
+    }
+
+    inventorySelect.addEventListener('change', updateFormFields);
+    updateFormFields();
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const numericFields = [
+        'selling_price',
+        'min_stock_level',
+        'raw_material_cost',
+    ];
+
+    numericFields.forEach(function (name) {
+        const el = document.querySelector('input[name="' + name + '"]');
+        if (!el) return;
+
+        el.addEventListener('input', function () {
+            if (this.value.indexOf(',') !== -1) {
+                this.value = this.value.replace(/,/g, '.');
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

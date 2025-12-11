@@ -2,12 +2,48 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
+from decimal import Decimal, InvalidOperation
 
-from .models import Department, Employee, Unit, Product, ProductMaster, TermCondition, Customer, ProductBOM, ProductDevelopment, COMPANY_SIZE_CHOICES
+from .models import (
+    Department,
+    Employee,
+    Unit,
+    Product,
+    ProductMaster,
+    TermCondition,
+    Customer,
+    ProductBOM,
+    ProductDevelopment,
+    COMPANY_SIZE_CHOICES,
+)
 from .forms import DepartmentForm, EmployeeForm, UnitForm, ProductForm
 from django.db.models import Q
 from datetime import datetime
 from django.db import transaction
+
+# ----------------------------------------------------------------------
+# Packed In options (used in Product Master "Packed In" dropdown)
+# ----------------------------------------------------------------------
+PACKED_IN_CHOICES = [
+    "BUCKETS 20LTRS WITHOUT NAME",
+    "BUCKET 10KG",
+    "BUCKET 5KG",
+    "BAG 20 KG",
+    "BUCKET 20LTR HYDE",
+    "BUCKET 1KG CRACKFILL",
+    "BUCKET 1KG HERO",
+    "BUCKET 10 LTRS WITHOUT NAME",
+    "BUCKET 20KG",
+    "10 LTR TIN",
+    "BUCKET 4LTR WITHOUT NAME",
+    "BUCKET 1LTR WITHOUT NAME",
+    "BAG 40KG",
+    "4 Ltr Tin",
+    "5 Ltr Can",
+    "500ml Tin",
+    # add more as needed
+]
+
 
 def master_dashboard(request):
     tiles_row1 = [
@@ -72,6 +108,7 @@ def master_dashboard(request):
     }
     return render(request, "masters/master_dashboard.html", context)
 
+
 def department_master(request, pk=None):
     """Department Master screen: create/edit departments."""
     department = None
@@ -106,6 +143,7 @@ def department_master(request, pk=None):
         "selected_department": department,
     }
     return render(request, "masters/department_master.html", context)
+
 
 def employee_master(request):
     """Master screen for Employee Details."""
@@ -145,6 +183,7 @@ def employee_master(request):
     }
     return render(request, "masters/employee_master.html", context)
 
+
 def unit_master(request):
     """
     Simple Unit Master:
@@ -182,6 +221,7 @@ def unit_master(request):
     }
     return render(request, "masters/unit_master.html", context)
 
+
 def product_master(request):
     """
     Simple Product Master – add product name on the left,
@@ -204,6 +244,7 @@ def product_master(request):
     }
     return render(request, "masters/product_master.html", context)
 
+
 def product_master_detail(request):
     """
     Product Master screen:
@@ -223,12 +264,16 @@ def product_master_detail(request):
     if q:
         rows = rows.filter(
             Q(base_product__name__icontains=q)
-            | Q(company_name__icontains=q)
         )
+
+    # default inventory type for first load
+    current_inventory_type = ProductMaster.INVENTORY_TYPE_FINISHED
 
     if request.method == "POST":
         base_product_id = request.POST.get("base_product")
         unit_id = request.POST.get("unit")
+        inventory_type = request.POST.get("inventory_type") or ProductMaster.INVENTORY_TYPE_FINISHED
+        current_inventory_type = inventory_type
 
         if not base_product_id:
             # minimal validation: just reload
@@ -237,21 +282,46 @@ def product_master_detail(request):
         base_product = Product.objects.get(id=base_product_id)
         unit = Unit.objects.get(id=unit_id) if unit_id else None
 
-        def _dec(name):
-            val = request.POST.get(name, "").strip()
-            return val or None
+        def _dec(name: str):
+            raw = (request.POST.get(name) or "").strip()
+            if not raw:
+                return None
+
+            # force dot-decimal: convert comma to dot just in case
+            raw = raw.replace(",", ".")
+
+            try:
+                return Decimal(raw)
+            except InvalidOperation:
+                # invalid number -> treat as empty
+                return None
+
+        # initial values from form
+        solid_val = _dec("solid")
+        density_val = _dec("density")
+        packed_in_val = (request.POST.get("packed_in") or "").strip()
+
+        # Business rules based on inventory type:
+        # - RAW MATERIAL: has density & solids, no packed_in
+        # - FINISHED GOODS / PACKING MATERIAL: use packed_in, ignore density & solids
+        if inventory_type == ProductMaster.INVENTORY_TYPE_RAW:
+            packed_in_val = ""
+        else:
+            solid_val = None
+            density_val = None
 
         ProductMaster.objects.create(
             base_product=base_product,
             unit=unit,
+            inventory_type=inventory_type,
             pack_qty=_dec("pack_qty"),
             incentive=_dec("incentive"),
-            solid=_dec("solid"),
+            solid=solid_val,
             selling_price=_dec("selling_price"),
-            packed_in=request.POST.get("packed_in", "").strip(),
+            packed_in=packed_in_val,
             min_stock_level=_dec("min_stock_level"),
             raw_material_cost=_dec("raw_material_cost"),
-            density=_dec("density"),
+            density=density_val,
             company_name="DMOR PAINTS",
         )
 
@@ -262,8 +332,12 @@ def product_master_detail(request):
         "units": units,
         "rows": rows,
         "search": q,
+        "packed_in_choices": PACKED_IN_CHOICES,
+        "INVENTORY_TYPE_CHOICES": ProductMaster.INVENTORY_TYPE_CHOICES,
+        "current_inventory_type": current_inventory_type,
     }
     return render(request, "masters/product_master_detail.html", context)
+
 
 def product_master_detail_delete(request, pk):
     if request.method == "POST":
@@ -272,6 +346,7 @@ def product_master_detail_delete(request, pk):
         messages.success(request, "Product master record deleted.")
     # whether it was POST or not, go back to the listing
     return redirect("product_master_detail")
+
 
 def terms_conditions(request):
     """
@@ -319,6 +394,7 @@ def terms_conditions(request):
     }
     return render(request, "masters/terms_conditions.html", context)
 
+
 def customer_master(request):
     """
     Add New Customer master screen:
@@ -353,6 +429,46 @@ def customer_master(request):
         mobile_no1 = (request.POST.get("mobile_no1") or "").strip()
         mobile_no2 = (request.POST.get("mobile_no2") or "").strip()
         reference_name = (request.POST.get("reference_name") or "").strip()
+
+        # ---------- UNIQUENESS CHECKS ----------
+        # gst_no, mobile_no1 and mobile_no2 must be unique across all customers
+        has_conflict = False
+
+        # GST No uniqueness (case-insensitive)
+        if gst_no:
+            qs = Customer.objects.filter(gst_no__iexact=gst_no)
+            if customer_pk:
+                qs = qs.exclude(pk=customer_pk)
+            if qs.exists():
+                messages.error(request, "GST No is already used by another customer.")
+                has_conflict = True
+
+        # Mobile 1 uniqueness (cannot match any customer's mobile1 or mobile2)
+        if mobile_no1:
+            qs = Customer.objects.filter(
+                Q(mobile_no1=mobile_no1) | Q(mobile_no2=mobile_no1)
+            )
+            if customer_pk:
+                qs = qs.exclude(pk=customer_pk)
+            if qs.exists():
+                messages.error(request, "Mobile No 1 is already used by another customer.")
+                has_conflict = True
+
+        # Mobile 2 uniqueness (cannot match any customer's mobile1 or mobile2)
+        if mobile_no2:
+            qs = Customer.objects.filter(
+                Q(mobile_no1=mobile_no2) | Q(mobile_no2=mobile_no2)
+            )
+            if customer_pk:
+                qs = qs.exclude(pk=customer_pk)
+            if qs.exists():
+                messages.error(request, "Mobile No 2 is already used by another customer.")
+                has_conflict = True
+
+        # if any conflict, abort save and reload screen
+        if has_conflict:
+            return redirect("customer_master")
+        # ---------- END UNIQUENESS CHECKS ----------
 
         # parse date from HTML date input (YYYY-MM-DD)
         proprietor_dob = None
@@ -414,6 +530,7 @@ def customer_master(request):
     }
     return render(request, "masters/customer_master.html", context)
 
+
 @transaction.atomic
 def product_bom_master(request):
     products = Product.objects.order_by("name")
@@ -470,6 +587,7 @@ def product_bom_master(request):
         "form_hours": form_hours,
     }
     return render(request, "masters/product_bom_master.html", context)
+
 
 @transaction.atomic
 def product_development(request):

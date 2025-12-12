@@ -24,7 +24,6 @@ class Department(models.Model):
     def __str__(self):
         return self.name
 
-
 class Employee(models.Model):
     employee_id = models.CharField(
         max_length=20,
@@ -234,6 +233,27 @@ class ProductMaster(models.Model):
 
     def __str__(self):
         return f"{self.base_product.name} ({self.get_inventory_type_display()})"
+
+class ProductBOMItem(models.Model):
+    bom = models.ForeignKey(
+        "ProductBOM",
+        on_delete=models.CASCADE,
+        related_name="items",
+    )
+    product = models.ForeignKey(
+        "Product",
+        on_delete=models.PROTECT,
+        related_name="bom_items",
+    )
+    percent = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
+    sequence = models.IntegerField(default=0)
+
+    class Meta:
+        unique_together = ("bom", "product")
+        ordering = ["sequence", "id"]
+
+    def __str__(self):
+        return f"{self.bom.category.name} -> {self.product.name} ({self.percent}%)"
     
 class TermCondition(models.Model):
     term_name = models.CharField("Term", max_length=200)
@@ -354,3 +374,35 @@ class ProductDevelopment(models.Model):
 
     def __str__(self):
         return f"{self.category.name} – {self.per_percent}%"
+
+class ProductDevelopmentItem(models.Model):
+    development = models.ForeignKey(
+        "ProductDevelopment",
+        on_delete=models.CASCADE,
+        related_name="items",
+    )
+    product = models.ForeignKey(
+        "Product",
+        on_delete=models.PROTECT,
+        related_name="development_items",
+    )
+
+    percent = models.DecimalField(max_digits=10, decimal_places=3, default=Decimal("0.000"))
+    sequence = models.IntegerField(default=0)
+
+    rate = models.DecimalField(max_digits=12, decimal_places=3, default=Decimal("0.000"))
+    amount = models.DecimalField(max_digits=14, decimal_places=3, default=Decimal("0.000"))
+
+    solid_percent = models.DecimalField(max_digits=10, decimal_places=3, default=Decimal("0.000"))
+    solid = models.DecimalField(max_digits=12, decimal_places=3, default=Decimal("0.000"))
+
+    density = models.DecimalField(max_digits=10, decimal_places=3, default=Decimal("0.000"))
+    wt_ltr = models.DecimalField(max_digits=12, decimal_places=3, default=Decimal("0.000"))
+    sv = models.DecimalField(max_digits=12, decimal_places=3, default=Decimal("0.000"))
+
+    class Meta:
+        unique_together = ("development", "product")
+        ordering = ["sequence", "id"]
+
+    def __str__(self):
+        return f"{self.development.category.name} -> {self.product.name}"

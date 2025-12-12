@@ -14,12 +14,15 @@ from .models import (
     Customer,
     ProductBOM,
     ProductDevelopment,
+    ProductBOMItem,
+    ProductDevelopmentItem,
     COMPANY_SIZE_CHOICES,
 )
 from .forms import DepartmentForm, EmployeeForm, UnitForm, ProductForm
 from django.db.models import Q
 from datetime import datetime
 from django.db import transaction
+from django.utils import timezone
 
 # ----------------------------------------------------------------------
 # Packed In options (used in Product Master "Packed In" dropdown)
@@ -530,7 +533,6 @@ def customer_master(request):
     }
     return render(request, "masters/customer_master.html", context)
 
-
 @transaction.atomic
 def product_bom_master(request):
     products = Product.objects.order_by("name")
@@ -542,6 +544,33 @@ def product_bom_master(request):
     form_density = ""
     form_hours = ""
 
+    def _to_float(raw: str):
+        raw = (raw or "").strip().replace(",", ".")
+        if not raw:
+            return None
+        try:
+            return float(raw)
+        except ValueError:
+            return None
+
+    def _to_decimal(raw: str, default=Decimal("0.00")):
+        raw = (raw or "").strip().replace(",", ".")
+        if not raw:
+            return default
+        try:
+            return Decimal(raw)
+        except InvalidOperation:
+            return default
+
+    def _to_int(raw: str, default=0):
+        raw = (raw or "").strip()
+        if not raw:
+            return default
+        try:
+            return int(raw)
+        except ValueError:
+            return default
+
     if request.method == "POST":
         form_category_id = request.POST.get("category_id", "").strip()
         form_per_percent = request.POST.get("per_percent", "").strip()
@@ -554,12 +583,12 @@ def product_bom_master(request):
             try:
                 category = Product.objects.get(id=form_category_id)
 
-                # convert numeric fields safely
-                per_val = float(form_per_percent) if form_per_percent else 0
-                dens_val = float(form_density) if form_density else None
-                hours_val = float(form_hours) if form_hours else None
+                # convert numeric fields safely (header)
+                per_val = _to_float(form_per_percent) or 0
+                dens_val = _to_float(form_density)
+                hours_val = _to_float(form_hours)
 
-                obj, created = ProductBOM.objects.update_or_create(
+                bom_obj, created = ProductBOM.objects.update_or_create(
                     category=category,
                     defaults={
                         "per_percent": per_val,
@@ -568,15 +597,42 @@ def product_bom_master(request):
                         "is_active": True,
                     },
                 )
+
+                # ----- SAVE GRID LINE ITEMS -----
+                # Saves percent_<productId> and seq_<productId> into ProductBOMItem
+                # If the grid is shown, this will update/create items for all products.
+                for p in products:
+                    percent_val = _to_decimal(request.POST.get(f"percent_{p.id}"), default=Decimal("0.00"))
+                    seq_val = _to_int(request.POST.get(f"seq_{p.id}"), default=0)
+
+                    ProductBOMItem.objects.update_or_create(
+                        bom=bom_obj,
+                        product=p,
+                        defaults={
+                            "percent": percent_val,
+                            "sequence": seq_val,
+                        },
+                    )
+                # ----- END SAVE GRID LINE ITEMS -----
+
                 messages.success(
                     request,
                     f"Product BOM for '{category.name}' has been "
                     f"{'created' if created else 'updated'}.",
                 )
-                # clear form after save
-                return redirect("product_bom_master")
+
+                # keep same category selected after save
+                return redirect(f"{reverse('product_bom_master')}?category_id={category.id}")
+
             except Product.DoesNotExist:
                 messages.error(request, "Selected category not found.")
+
+    else:
+        # GET: when user clicks category, we pass ?category_id=...
+        form_category_id = request.GET.get("category_id", "").strip()
+
+    # show detail grid only if a category is selected
+    show_bom_table = bool(form_category_id)
 
     context = {
         "products": products,
@@ -585,21 +641,47 @@ def product_bom_master(request):
         "form_per_percent": form_per_percent,
         "form_density": form_density,
         "form_hours": form_hours,
+        "show_bom_table": show_bom_table,
     }
     return render(request, "masters/product_bom_master.html", context)
+
+def _dec_dot(val: str, default: str = "0") -> Decimal:
+    """
+    Safe Decimal parser:
+    - empty => default
+    - comma not allowed (enforces dot decimals)
+    """
+    s = (val or "").strip()
+    if s == "":
+        return Decimal(default)
+    if "," in s:
+        raise InvalidOperation("Comma decimal not allowed")
+    return Decimal(s)
 
 
 @transaction.atomic
 def product_development(request):
     products = Product.objects.order_by("name")
-    dev_list = ProductDevelopment.objects.select_related("category").order_by("category__name")
 
-    # Keep form values if validation fails
     form_category_id = ""
     form_per_percent = ""
     form_density = ""
     form_hours = ""
 
+    development = None
+    items_by_pid = {}  # product_id -> ProductDevelopmentItem
+
+    # bottom totals
+    total_volume = Decimal("0.000")
+    total_sv = Decimal("0.000")
+    solid_volume_ratio = Decimal("0.00")
+
+    # right table
+    summary_rows = []
+
+    # -------------------------
+    # POST (SAVE)
+    # -------------------------
     if request.method == "POST":
         form_category_id = request.POST.get("category_id", "").strip()
         form_per_percent = request.POST.get("per_percent", "").strip()
@@ -610,36 +692,165 @@ def product_development(request):
             messages.error(request, "Category and Per % are required.")
         else:
             try:
-                category = Product.objects.get(id=form_category_id)
+                category = Product.objects.get(pk=form_category_id)
 
-                per_val = float(form_per_percent) if form_per_percent else 0
-                dens_val = float(form_density) if form_density else None
-                hours_val = float(form_hours) if form_hours else None
+                per_percent = _dec_dot(form_per_percent, "0")
+                density_hdr = _dec_dot(form_density, "0")
+                hours = _dec_dot(form_hours, "0")
 
-                obj, created = ProductDevelopment.objects.update_or_create(
+                development, _ = ProductDevelopment.objects.update_or_create(
                     category=category,
                     defaults={
-                        "per_percent": per_val,
-                        "density": dens_val,
-                        "hours": hours_val,
+                        "per_percent": per_percent,
+                        "density": density_hdr,
+                        "hours": hours,
                         "is_active": True,
+                        "created_at": timezone.now(),
                     },
                 )
-                messages.success(
-                    request,
-                    f"Product development for '{category.name}' has been "
-                    f"{'created' if created else 'updated'}.",
-                )
-                return redirect("product_development")
+
+                # Save rows
+                for p in products:
+                    percent = _dec_dot(request.POST.get(f"percent_{p.id}"), "0")
+                    seq = int((request.POST.get(f"seq_{p.id}") or "0").strip() or "0")
+                    rate = _dec_dot(request.POST.get(f"rate_{p.id}"), "0")
+                    solid_percent = _dec_dot(request.POST.get(f"solidp_{p.id}"), "0")
+                    dens = _dec_dot(request.POST.get(f"dens_{p.id}"), "0")
+
+                    # ---- LEGACY CALCS (server-side) ----
+                    amount = percent * rate
+                    solid = percent * (solid_percent / Decimal("100"))
+                    wt_ltr = (percent / dens) if dens > 0 else Decimal("0")
+                    sv = (solid / dens) if dens > 0 else Decimal("0")
+
+                    # Skip truly empty
+                    if percent == 0 and rate == 0 and solid_percent == 0 and dens == 0:
+                        # If row existed earlier, you may want to delete it:
+                        ProductDevelopmentItem.objects.filter(
+                            development=development, product=p
+                        ).delete()
+                        continue
+
+                    ProductDevelopmentItem.objects.update_or_create(
+                        development=development,
+                        product=p,
+                        defaults={
+                            "percent": percent,
+                            "sequence": seq,
+                            "rate": rate,
+                            "amount": amount,
+                            "solid_percent": solid_percent,
+                            "solid": solid,
+                            "density": dens,
+                            "wt_ltr": wt_ltr,
+                            "sv": sv,
+                        },
+                    )
+
+                messages.success(request, "Product Development saved successfully.")
+                return redirect(f"{reverse('product_development')}?category_id={category.id}")
+
             except Product.DoesNotExist:
                 messages.error(request, "Selected category not found.")
+            except (InvalidOperation, ValueError):
+                messages.error(request, "Invalid number format. Use dot (.) for decimals only.")
+
+    # -------------------------
+    # GET (LOAD)
+    # -------------------------
+    else:
+        form_category_id = request.GET.get("category_id", "").strip()
+
+    if form_category_id:
+        development = ProductDevelopment.objects.filter(category_id=form_category_id).first()
+        if development:
+            form_per_percent = development.per_percent
+            form_density = development.density
+            form_hours = development.hours
+
+            dev_items = (
+                ProductDevelopmentItem.objects
+                .filter(development=development)
+                .select_related("product")
+                .order_by("sequence", "id")
+            )
+
+            # map for template defaults
+            items_by_pid = {it.product_id: it for it in dev_items}
+
+            # totals
+            perkg_cost = Decimal("0.000")
+            for it in dev_items:
+                total_volume += (it.wt_ltr or Decimal("0"))
+                total_sv += (it.sv or Decimal("0"))
+                perkg_cost += (it.amount or Decimal("0"))
+
+            if total_volume > 0:
+                solid_volume_ratio = (total_sv / total_volume) * Decimal("100")
+
+            # -------------------------
+            # LEGACY RIGHT BOX
+            # -------------------------
+            # Finished goods master for this category
+            fg_master = (
+                ProductMaster.objects
+                .select_related("base_product", "unit")
+                .filter(
+                    base_product_id=form_category_id,
+                    inventory_type=ProductMaster.INVENTORY_TYPE_FINISHED,
+                )
+                .first()
+            )
+
+            if fg_master:
+                pack_qty = fg_master.pack_qty or Decimal("1")
+                selling_price = fg_master.selling_price or Decimal("0")
+
+                # packing cost from packing material by name == packed_in
+                packing_cost = Decimal("0.00")
+                if fg_master.packed_in:
+                    pm = (
+                        ProductMaster.objects
+                        .select_related("base_product")
+                        .filter(
+                            inventory_type=ProductMaster.INVENTORY_TYPE_PACKING,
+                            base_product__name__iexact=fg_master.packed_in.strip(),
+                        )
+                        .first()
+                    )
+                    if pm and pm.selling_price:
+                        packing_cost = pm.selling_price
+
+                per_ltr_cost_price = (perkg_cost / total_volume) if total_volume > 0 else Decimal("0")
+                production_cost = (per_ltr_cost_price * pack_qty) + packing_cost
+                gross_profit = selling_price - production_cost
+
+                summary_rows.append({
+                    "product_name": fg_master.base_product.name,
+                    "pack_qty": pack_qty,
+                    "unit_selling_rate": (selling_price / pack_qty) if pack_qty > 0 else Decimal("0"),
+                    "perkg_cost": perkg_cost,
+                    "packing_cost": packing_cost,
+                    "per_ltr_cost_price": per_ltr_cost_price,
+                    "production_cost": production_cost,
+                    "gross_profit": gross_profit,
+                })
 
     context = {
         "products": products,
-        "dev_list": dev_list,
+        "development": development,
+        "items_by_pid": items_by_pid,
         "form_category_id": form_category_id,
         "form_per_percent": form_per_percent,
         "form_density": form_density,
         "form_hours": form_hours,
+        "show_dev_table": bool(form_category_id),
+
+        # bottom totals
+        "solid_volume_ratio": solid_volume_ratio.quantize(Decimal("0.01")),
+        "total_volume": total_volume.quantize(Decimal("0.01")),
+
+        # right box
+        "summary_rows": summary_rows,
     }
     return render(request, "masters/product_development.html", context)

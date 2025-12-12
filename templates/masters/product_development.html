@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load masters_extras %}
 
 {% block content %}
 <div style="margin: 24px 32px 0 32px;">
@@ -46,19 +47,19 @@
             </div>
         {% endif %}
 
-        <!-- FORM FIELDS -->
         <form method="post">
             {% csrf_token %}
 
+            <!-- HEADER FIELDS -->
             <table style="width:100%; border-collapse:collapse; font-size:13px;">
                 <tr>
-                    <!-- Category -->
                     <td style="width:25%; padding:4px 8px;">
                         <span style="color:red;">*</span> Category
                     </td>
                     <td style="width:25%; padding:4px 8px;">
                         <select name="category_id"
-                                style="width:100%; padding:4px 6px; border:1px solid #ccc; font-size:13px;">
+                                style="width:100%; padding:4px 6px; border:1px solid #ccc; font-size:13px;"
+                                onchange="if(this.value){ window.location='?category_id='+this.value; }">
                             <option value="">Select</option>
                             {% for p in products %}
                                 <option value="{{ p.id }}"
@@ -69,7 +70,6 @@
                         </select>
                     </td>
 
-                    <!-- Density -->
                     <td style="width:15%; padding:4px 8px;">
                         <span style="color:red;">*</span> Density
                     </td>
@@ -82,7 +82,6 @@
                 </tr>
 
                 <tr>
-                    <!-- Per % -->
                     <td style="padding:4px 8px;">
                         <span style="color:red;">*</span> Per %
                     </td>
@@ -93,7 +92,6 @@
                                style="width:100%; padding:4px 6px; border:1px solid #ccc; font-size:13px;">
                     </td>
 
-                    <!-- Hours -->
                     <td style="padding:4px 8px;">
                         <span style="color:red;">*</span> Hours
                     </td>
@@ -106,22 +104,169 @@
                 </tr>
             </table>
 
-            <!-- SEARCH PRODUCT / ADD (placeholder for now) -->
-            <div style="margin-top:24px; display:flex; gap:8px; max-width:520px;">
-                <input type="text"
-                       placeholder="Search Product"
-                       style="flex:1; padding:6px 8px; border:1px solid #ccc; font-size:13px;"
-                       disabled>
-                <button type="button"
-                        style="width:90px; border:none; background:#4caf50;
-                               color:#fff; font-size:13px; font-weight:600;"
-                        disabled>
-                    Add
-                </button>
+            <!-- DETAILS TABLE (RED BOX AREA YOU MARKED) -->
+            {% if show_dev_table %}
+            <div style="margin-top:24px;">
+                <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                    <thead>
+                        <tr>
+                            <th style="background:#0c7db1;color:#fff;padding:6px 8px;width:80px;">Product Id</th>
+                            <th style="background:#0c7db1;color:#fff;padding:6px 8px;">Product Name</th>
+                            <th style="background:#0c7db1;color:#fff;padding:6px 8px;width:90px;">Percent %</th>
+                            <th style="background:#0c7db1;color:#fff;padding:6px 8px;width:90px;">Sequence</th>
+                            <th style="background:#0c7db1;color:#fff;padding:6px 8px;width:90px;">Rate</th>
+                            <th style="background:#0c7db1;color:#fff;padding:6px 8px;width:90px;">Amount</th>
+                            <th style="background:#0c7db1;color:#fff;padding:6px 8px;width:90px;">Solid %</th>
+                            <th style="background:#0c7db1;color:#fff;padding:6px 8px;width:90px;">Solid</th>
+                            <th style="background:#0c7db1;color:#fff;padding:6px 8px;width:90px;">Density</th>
+                            <th style="background:#0c7db1;color:#fff;padding:6px 8px;width:90px;">Wt/LTR</th>
+                            <th style="background:#0c7db1;color:#fff;padding:6px 8px;width:90px;">SV</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in products %}
+                        {% with it=items_by_pid|get_item:p.id %}
+                        <tr style="border-bottom:1px solid #eef1f6;">
+                            <td style="padding:6px 8px;">{{ p.id }}</td>
+                            <td style="padding:6px 8px;">{{ p.name }}</td>
+
+                            <td style="padding:4px 8px;">
+                                <input type="number" step="0.001"
+                                    name="percent_{{ p.id }}"
+                                    value="{% if it %}{{ it.percent }}{% else %}0{% endif %}"
+                                    class="dev-input percent" data-pid="{{ p.id }}"
+                                    style="width:100%;height:24px;font-size:12px;">
+                            </td>
+
+                            <td style="padding:4px 8px;">
+                                <input type="number" step="1"
+                                    name="seq_{{ p.id }}"
+                                    value="{% if it %}{{ it.sequence }}{% else %}0{% endif %}"
+                                    class="dev-input seq" data-pid="{{ p.id }}"
+                                    style="width:100%;height:24px;font-size:12px;">
+                            </td>
+
+                            <td style="padding:4px 8px;">
+                                <input type="number" step="0.001"
+                                    name="rate_{{ p.id }}"
+                                    value="{% if it %}{{ it.rate }}{% else %}0{% endif %}"
+                                    class="dev-input rate" data-pid="{{ p.id }}"
+                                    style="width:100%;height:24px;font-size:12px;">
+                            </td>
+
+                            <td style="padding:4px 8px;">
+                                <input type="number" step="0.001"
+                                    name="amount_{{ p.id }}"
+                                    value="{% if it %}{{ it.amount }}{% else %}0{% endif %}"
+                                    class="dev-calc amount" data-pid="{{ p.id }}"
+                                    readonly
+                                    style="width:100%;height:24px;font-size:12px;background:#f4f6f9;">
+                            </td>
+
+                            <td style="padding:4px 8px;">
+                                <input type="number" step="0.001"
+                                    name="solidp_{{ p.id }}"
+                                    value="{% if it %}{{ it.solid_percent }}{% else %}0{% endif %}"
+                                    class="dev-input solidp" data-pid="{{ p.id }}"
+                                    style="width:100%;height:24px;font-size:12px;">
+                            </td>
+
+                            <td style="padding:4px 8px;">
+                                <input type="number" step="0.001"
+                                    name="solid_{{ p.id }}"
+                                    value="{% if it %}{{ it.solid }}{% else %}0{% endif %}"
+                                    class="dev-calc solid" data-pid="{{ p.id }}"
+                                    readonly
+                                    style="width:100%;height:24px;font-size:12px;background:#f4f6f9;">
+                            </td>
+
+                            <td style="padding:4px 8px;">
+                                <input type="number" step="0.001"
+                                    name="dens_{{ p.id }}"
+                                    value="{% if it %}{{ it.density }}{% else %}0{% endif %}"
+                                    class="dev-input dens" data-pid="{{ p.id }}"
+                                    style="width:100%;height:24px;font-size:12px;">
+                            </td>
+
+                            <td style="padding:4px 8px;">
+                                <input type="number" step="0.001"
+                                    name="wt_{{ p.id }}"
+                                    value="{% if it %}{{ it.wt_ltr }}{% else %}0{% endif %}"
+                                    class="dev-calc wt" data-pid="{{ p.id }}"
+                                    readonly
+                                    style="width:100%;height:24px;font-size:12px;background:#f4f6f9;">
+                            </td>
+
+                            <td style="padding:4px 8px;">
+                                <input type="number" step="0.001"
+                                    name="sv_{{ p.id }}"
+                                    value="{% if it %}{{ it.sv }}{% else %}0{% endif %}"
+                                    class="dev-calc sv" data-pid="{{ p.id }}"
+                                    readonly
+                                    style="width:100%;height:24px;font-size:12px;background:#f4f6f9;">
+                            </td>
+                        </tr>
+                        {% endwith %}
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
 
-            <!-- SAVE / CLOSE BUTTONS -->
-            <div style="margin-top:32px; text-align:center;">
+            <!-- BOTTOM TOTALS -->
+            <div style="
+                margin-top:24px;
+                padding:8px 4px;
+                border-top:1px solid #e2e6f0;
+                font-size:13px;
+                color:#2f6fab;
+                display:flex;
+                justify-content:space-between;
+            ">
+                <span>Solid Volume Ratio: <b id="svr">{{ solid_volume_ratio }}</b></span>
+                <span>Total Volume: <b id="tvol">{{ total_volume }}</b></span>
+            </div>
+
+            <!-- RIGHT SUMMARY TABLE (LEGACY COSTING) -->
+            <div style="margin-top:18px;">
+                <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                    <thead>
+                        <tr>
+                            <th style="background:#0c7db1;color:#fff;padding:6px 8px;">Perkg cost</th>
+                            <th style="background:#0c7db1;color:#fff;padding:6px 8px;">Packing cost</th>
+                            <th style="background:#0c7db1;color:#fff;padding:6px 8px;">Product name</th>
+                            <th style="background:#0c7db1;color:#fff;padding:6px 8px;">Pack Qty</th>
+                            <th style="background:#0c7db1;color:#fff;padding:6px 8px;">Unit selling rate</th>
+                            <th style="background:#0c7db1;color:#fff;padding:6px 8px;">Per LTR Cost price</th>
+                            <th style="background:#0c7db1;color:#fff;padding:6px 8px;">Production cost</th>
+                            <th style="background:#0c7db1;color:#fff;padding:6px 8px;">Gross Profit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in summary_rows %}
+                        <tr style="border-bottom:1px solid #eef1f6;">
+                            <td style="padding:6px 8px;text-align:right;">{{ s.perkg_cost|floatformat:2 }}</td>
+                            <td style="padding:6px 8px;text-align:right;">{{ s.packing_cost|floatformat:2 }}</td>
+                            <td style="padding:6px 8px;">{{ s.product_name }}</td>
+                            <td style="padding:6px 8px;text-align:right;">{{ s.pack_qty }}</td>
+                            <td style="padding:6px 8px;text-align:right;">{{ s.unit_selling_rate|floatformat:2 }}</td>
+                            <td style="padding:6px 8px;text-align:right;">{{ s.per_ltr_cost_price|floatformat:2 }}</td>
+                            <td style="padding:6px 8px;text-align:right;">{{ s.production_cost|floatformat:2 }}</td>
+                            <td style="padding:6px 8px;text-align:right;">{{ s.gross_profit|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" style="padding:10px;text-align:center;color:#888;">
+                                Select a category and ensure Finished Goods Product Master exists.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+
+            <!-- BUTTONS -->
+            <div style="margin-top:24px; text-align:center;">
                 <button type="submit"
                         style="min-width:90px; margin-right:8px; padding:6px 18px; border:none;
                                background:#4caf50; color:#fff; font-size:13px; font-weight:600;">
@@ -136,50 +281,92 @@
             </div>
         </form>
 
-        <!-- LIST OF EXISTING DEVELOPMENT RECORDS -->
-        <div style="margin-top:28px;">
-            <table style="width:100%; border-collapse:collapse; font-size:13px;">
-                <thead>
-                    <tr>
-                        <th style="background:#0c7db1; color:#fff; padding:6px 8px; text-align:left;">Category</th>
-                        <th style="background:#0c7db1; color:#fff; padding:6px 8px; text-align:right;">Per %</th>
-                        <th style="background:#0c7db1; color:#fff; padding:6px 8px; text-align:right;">Density</th>
-                        <th style="background:#0c7db1; color:#fff; padding:6px 8px; text-align:right;">Hours</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for r in dev_list %}
-                        <tr style="border-bottom:1px solid #eef1f6;">
-                            <td style="padding:6px 8px;">{{ r.category.name }}</td>
-                            <td style="padding:6px 8px; text-align:right;">{{ r.per_percent }}</td>
-                            <td style="padding:6px 8px; text-align:right;">{{ r.density }}</td>
-                            <td style="padding:6px 8px; text-align:right;">{{ r.hours }}</td>
-                        </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="4" style="padding:10px; text-align:center; color:#888;">
-                                No product development records found.
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <!-- BOTTOM SUMMARY STRIP (visual only for now) -->
-        <div style="
-            margin-top:24px;
-            padding:8px 4px;
-            border-top:1px solid #e2e6f0;
-            font-size:13px;
-            color:#2f6fab;
-            display:flex;
-            justify-content:space-between;
-        ">
-            <span>Solid Volume Ratio:</span>
-            <span>Total Volume:</span>
-        </div>
-
     </div>
 </div>
+
+<script>
+(function () {
+  function n(v) {
+    if (v === null || v === undefined) return 0;
+    const s = String(v).trim();
+    if (!s) return 0;
+    if (s.includes(",")) return NaN; // enforce dot decimals
+    const x = Number(s);
+    return Number.isFinite(x) ? x : NaN;
+  }
+  function fix3(x){ return Number.isFinite(x) ? x.toFixed(3) : "0.000"; }
+  function fix2(x){ return Number.isFinite(x) ? x.toFixed(2) : "0.00"; }
+
+  function rowCalc(pid) {
+    const percent = n(document.querySelector(`.percent[data-pid="${pid}"]`)?.value);
+    const rate = n(document.querySelector(`.rate[data-pid="${pid}"]`)?.value);
+    const solidp = n(document.querySelector(`.solidp[data-pid="${pid}"]`)?.value);
+    const dens = n(document.querySelector(`.dens[data-pid="${pid}"]`)?.value);
+
+    if ([percent, rate, solidp, dens].some(v => Number.isNaN(v))) {
+      return { wt: 0, sv: 0, invalid: true };
+    }
+
+    const amount = percent * rate;
+    const solid = percent * (solidp / 100.0);
+    const wt = (dens > 0) ? (percent / dens) : 0;
+    const sv = (dens > 0) ? (solid / dens) : 0;
+
+    const amountEl = document.querySelector(`.amount[data-pid="${pid}"]`);
+    const solidEl  = document.querySelector(`.solid[data-pid="${pid}"]`);
+    const wtEl     = document.querySelector(`.wt[data-pid="${pid}"]`);
+    const svEl     = document.querySelector(`.sv[data-pid="${pid}"]`);
+
+    if (amountEl) amountEl.value = fix3(amount);
+    if (solidEl)  solidEl.value  = fix3(solid);
+    if (wtEl)     wtEl.value     = fix3(wt);
+    if (svEl)     svEl.value     = fix3(sv);
+
+    return { wt, sv, invalid: false };
+  }
+
+  function recalcAll() {
+    const pids = new Set();
+    document.querySelectorAll("[data-pid]").forEach(el => pids.add(el.dataset.pid));
+
+    let totalVol = 0;
+    let totalSV = 0;
+    let anyInvalid = false;
+
+    pids.forEach(pid => {
+      const r = rowCalc(pid);
+      totalVol += r.wt;
+      totalSV += r.sv;
+      anyInvalid = anyInvalid || r.invalid;
+    });
+
+    const svr = (totalVol > 0) ? ((totalSV / totalVol) * 100.0) : 0;
+
+    const tvolEl = document.getElementById("tvol");
+    const svrEl  = document.getElementById("svr");
+    if (tvolEl) tvolEl.textContent = fix2(totalVol);
+    if (svrEl)  svrEl.textContent  = fix2(svr);
+
+    let warn = document.getElementById("numwarn");
+    if (!warn) {
+      warn = document.createElement("div");
+      warn.id = "numwarn";
+      warn.style.cssText = "margin-top:10px;font-size:13px;padding:6px 10px;border:1px solid #f5c6cb;background:#fdecea;color:#b71c1c;border-radius:3px;display:none;";
+      warn.textContent = "Invalid number detected. Use dot (.) for decimals only.";
+      const parent = document.querySelector("form");
+      if (parent) parent.insertBefore(warn, parent.firstChild);
+    }
+    warn.style.display = anyInvalid ? "block" : "none";
+  }
+
+  document.addEventListener("input", function (e) {
+    if (e.target.classList.contains("dev-input")) {
+      recalcAll();
+    }
+  });
+
+  recalcAll();
+})();
+</script>
+
 {% endblock %}

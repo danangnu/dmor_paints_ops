@@ -3,18 +3,25 @@
 from decimal import Decimal
 from django.db import models
 from django.core.validators import RegexValidator, MinValueValidator
+from django.forms import ValidationError
 from django.utils import timezone
+from masters.models import Employee, Product
 
 # -------------------------------------------------------------------
 # Common validators
 # -------------------------------------------------------------------
+from django.core.exceptions import ValidationError
+
+def validate_non_negative(value):
+    if value is None:
+        return
+    if value < 0:
+        raise ValidationError("Value cannot be negative.")
 
 phone_validator = RegexValidator(
     regex=r"^\d{7,15}$",
     message="Enter a valid mobile number (7–15 digits).",
 )
-
-non_negative = [MinValueValidator(0)]
 
 
 class Order(models.Model):
@@ -44,14 +51,14 @@ class Order(models.Model):
     quantity = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        validators=non_negative,
+        validators=[validate_non_negative],
         default=Decimal("0"),
         null=True,
     )
     price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        validators=non_negative,
+        validators=[validate_non_negative],
         default=Decimal("0"),
         null=True,
     )
@@ -59,20 +66,20 @@ class Order(models.Model):
         max_digits=10,
         decimal_places=2,
         default=Decimal("0"),
-        validators=non_negative,
+        validators=[validate_non_negative],
         null=True,
     )
     discount_amount = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=Decimal("0"),
-        validators=non_negative,
+        validators=[validate_non_negative],
         null=True,
     )
     total_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        validators=non_negative,
+        validators=[validate_non_negative],
         default=Decimal("0"),
         null=True,
     )
@@ -106,7 +113,7 @@ class Order(models.Model):
         max_digits=10,
         decimal_places=2,
         default=Decimal("0"),
-        validators=non_negative,
+        validators=[validate_non_negative],
         null=True,
     )
     dispatch_date = models.DateField(null=True, blank=True)
@@ -176,7 +183,6 @@ class FactoryOrder(models.Model):
 # -------------------------------------------------------------------
 # Batch / Production models
 # -------------------------------------------------------------------
-
 class Batch(models.Model):
     STATUS_CHOICES = [
         ("ACTIVE", "Active"),
@@ -184,73 +190,58 @@ class Batch(models.Model):
         ("CANCELLED", "Cancelled"),
     ]
 
-    supervisor = models.CharField(max_length=100)
-    labour = models.DecimalField(
-        max_digits=8,
-        decimal_places=2,
-        validators=non_negative,
-        help_text="Total labour hours or cost",
+    supervisor = models.ForeignKey(
+        Employee,
+        on_delete=models.PROTECT,
+        related_name="operation_batches",
+        null=True,
+        blank=True,
+        verbose_name="Supervisor",
     )
 
-    category = models.CharField(max_length=100)
-    base_qty = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        validators=non_negative,
-        help_text="Base Qty from BOM",
-    )
-    production_qty = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        validators=non_negative,
-        help_text="Planned production quantity",
+    labour = models.CharField(max_length=200, blank=True, default="")  # TEXT as you requested
+
+    category = models.ForeignKey(
+        Product,
+        on_delete=models.PROTECT,
+        related_name="production_batches",
+        null=True,
+        blank=True,
+        verbose_name="Category",
     )
 
+    base_qty = models.DecimalField(max_digits=10, decimal_places=2)
+    production_qty = models.DecimalField(max_digits=10, decimal_places=2)
     remark = models.TextField(blank=True)
 
     started_at = models.DateTimeField(default=timezone.now)
     ended_at = models.DateTimeField(null=True, blank=True)
-    status = models.CharField(
-        max_length=10,
-        choices=STATUS_CHOICES,
-        default="ACTIVE",
-    )
-
-    def time_required(self):
-        """Dummy computation: 1 hour per 100 units of production."""
-        if not self.production_qty:
-            return 0
-        return float(self.production_qty) / 100.0
-
-    def std_density(self):
-        return 1.0  # placeholder
-
-    def actual_density(self):
-        return 1.0  # placeholder
-
-    def density_diff(self):
-        return self.actual_density() - self.std_density()
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="ACTIVE")
 
     def __str__(self):
-        return f"Batch {self.id} - {self.supervisor}"
-
+        return f"Batch {self.id}"
 
 class BatchItem(models.Model):
     batch = models.ForeignKey(
-        Batch,
+        "Batch",
         related_name="items",
         on_delete=models.CASCADE,
     )
-    product = models.CharField(max_length=150)
-    qty = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        validators=non_negative,
+
+    # CHANGE THIS: Product -> MasterProduct
+    product = models.ForeignKey(
+        "MasterProduct",
+        on_delete=models.PROTECT,
+        related_name="batch_items",
+        null=True,
+        blank=True,
+        verbose_name="Product",
     )
+
+    qty = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
 
     def __str__(self):
         return f"{self.product} ({self.qty})"
-
 
 # -------------------------------------------------------------------
 # Dispatch / Logistics models
@@ -261,7 +252,7 @@ class Vehicle(models.Model):
     capacity_qty = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        validators=non_negative,
+        validators=[validate_non_negative],
         help_text="Max load capacity (e.g. in litres or cartons).",
     )
 
@@ -308,12 +299,12 @@ class DispatchItem(models.Model):
     available_qty = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        validators=non_negative,
+        validators=[validate_non_negative],
     )
     qty = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        validators=non_negative,
+        validators=[validate_non_negative],
     )
 
     ready_at = models.DateTimeField(
@@ -346,8 +337,6 @@ class DispatchItem(models.Model):
 # -------------------------------------------------------------------
 # Raw Material Inward models
 # -------------------------------------------------------------------
-non_negative = [MinValueValidator(0)]
-
 class MasterProduct(models.Model):
     PRODUCT_TYPES = [
         ("FG", "Finished Goods"),
@@ -369,13 +358,13 @@ class MasterProduct(models.Model):
         max_digits=10,
         decimal_places=2,
         default=Decimal("0.00"),
-        validators=non_negative,
+        validators=[validate_non_negative],
     )
     purchase_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=Decimal("0.00"),
-        validators=non_negative,
+        validators=[validate_non_negative],
     )
 
     def __str__(self):

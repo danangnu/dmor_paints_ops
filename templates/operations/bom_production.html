@@ -5,143 +5,138 @@
 
 <div class="batch-page">
 
-    <div class="payment-section">
-        <div class="payment-section-header">
-            BOM Production
+  <div class="payment-section">
+    <div class="payment-section-header">
+      BOM Production
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+
+      <!-- ROW 1: Supervisor + Labour -->
+      <div class="form-row two-cols batch-row">
+        <div class="col-half">
+          <label><span class="required">*</span> Select Supervisor</label>
+          {{ batch_form.supervisor }}
+          {{ batch_form.supervisor.errors }}
         </div>
 
-        <form method="post">
-            {% csrf_token %}
+        <div class="col-half">
+          <label><span class="required">*</span> Enter Labour</label>
+          {{ batch_form.labour }}
+          {{ batch_form.labour.errors }}
+        </div>
+      </div>
 
-            <!-- ROW 1: Supervisor + Labour -->
-            <div class="form-row two-cols batch-row">
-                <div class="col-half">
-                    <label><span class="required">*</span> Select Supervisor</label>
-                    {{ batch_form.supervisor }} {{ batch_form.supervisor.errors }}
-                </div>
-                <div class="col-half">
-                    <label><span class="required">*</span> Enter Labour</label>
-                    {{ batch_form.labour }} {{ batch_form.labour.errors }}
-                </div>
-            </div>
+      <!-- ROW 2: Category + Production Qty + Calculate -->
+      <div class="form-row batch-row align-center">
+        <div class="batch-field">
+          <label><span class="required">*</span> Category</label>
+          {{ batch_form.category }}
+          {{ batch_form.category.errors }}
+        </div>
 
-            <!-- ROW 2: Category + Qty + Production Qty + Calculate -->
-            <div class="form-row batch-row align-center">
-                <div class="batch-field">
-                    <label><span class="required">*</span> Category</label>
-                    {{ batch_form.category }} {{ batch_form.category.errors }}
-                </div>
-                <div class="batch-field small">
-                    <label><span class="required">*</span> Qty</label>
-                    {{ batch_form.base_qty }} {{ batch_form.base_qty.errors }}
-                </div>
-                <div class="batch-field medium">
-                    <label>Production Qty</label>
-                    {{ batch_form.production_qty }} {{ batch_form.production_qty.errors }}
-                </div>
-                <div class="batch-field">
-                    <label>&nbsp;</label>
-                    <button type="button" class="btn btn-success btn-sm">
-                        Calculate
-                    </button>
-                </div>
-            </div>
+        <div class="batch-field medium">
+          <label><span class="required">*</span> Production Qty</label>
+          {{ batch_form.production_qty }}
+          {{ batch_form.production_qty.errors }}
+        </div>
 
-            <!-- ROW 3: Product + Qty + Add -->
-            <div class="form-row batch-row align-center">
-                <div class="batch-field large">
-                    <label>Product</label>
-                    {{ item_form.product }} {{ item_form.product.errors }}
-                </div>
-                <div class="batch-field small">
-                    <label>Qty</label>
-                    {{ item_form.qty }} {{ item_form.qty.errors }}
-                </div>
-                <div class="batch-field">
-                    <label>&nbsp;</label>
-                    <button type="button" class="btn btn-success btn-sm">
-                        Add
-                    </button>
-                </div>
-            </div>
+        <div class="batch-field">
+          <label>&nbsp;</label>
+          <button type="button" class="btn btn-success btn-sm">
+            Calculate
+          </button>
+        </div>
+      </div>
 
-            <!-- Remark -->
-            <div class="form-row batch-row">
-                <label>Remark</label>
-                {{ batch_form.remark }} {{ batch_form.remark.errors }}
-            </div>
+      <!-- ROW 3: Product + Qty + Add -->
+      <div class="form-row batch-row align-center">
+        <div class="batch-field large">
+          <label>Product</label>
+          {{ item_form.product }}
+          {{ item_form.product.errors }}
+        </div>
 
-            <!-- Start / End buttons -->
-            <div class="form-row batch-row buttons-row">
-                <button type="submit" name="action" value="start_batch"
-                        class="btn btn-success">
-                    Start Batch
-                </button>
+        <div class="batch-field small">
+          <label>Qty</label>
+          {{ item_form.qty }}
+          {{ item_form.qty.errors }}
+        </div>
 
-                <!-- End batch is disabled in this simple version -->
-                <button type="submit" name="action" value="end_batch"
-                        class="btn btn-secondary" disabled>
-                    End Batch
-                </button>
-            </div>
-        </form>
-    </div>
+        <div class="batch-field">
+          <label>&nbsp;</label>
+          <button type="button" class="btn btn-success btn-sm">
+            Add
+          </button>
+        </div>
+      </div>
 
-    <!-- BOTTOM GRID: Last batches -->
-    <div class="payment-section">
-        <table class="payment-table batch-grid">
-            <thead>
-            <tr>
-                <th>BatchId</th>
-                <th>Superviser</th>
-                <th>Product</th>
-                <th>Labour</th>
-                <th>Time Required</th>
-                <th>STD</th>
-                <th>Product Qty</th>
-                <th>Production Qty</th>
-                <th>Standard Density</th>
-                <th>Actual Density</th>
-                <th>Diff</th>
-                <th>Cancel Batch</th>
-                <th>Download Report</th>
-                <th>Select</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for b in batches %}
-                <tr>
-                    <td>{{ b.id }}</td>
-                    <td>{{ b.supervisor }}</td>
-                    <td>
-                        {% if b.items.all %}
-                            {{ b.items.all.0.product }}
-                        {% endif %}
-                    </td>
-                    <td>{{ b.labour }}</td>
-                    <td>{{ b.time_required|floatformat:2 }}</td>
-                    <td>STD</td>
-                    <td>
-                        {% if b.items.all %}
-                            {{ b.items.all.0.qty }}
-                        {% endif %}
-                    </td>
-                    <td>{{ b.production_qty }}</td>
-                    <td>{{ b.std_density|floatformat:2 }}</td>
-                    <td>{{ b.actual_density|floatformat:2 }}</td>
-                    <td>{{ b.density_diff|floatformat:2 }}</td>
-                    <td><a href="#" class="link-action">Cancel</a></td>
-                    <td><a href="#" class="link-action">Download</a></td>
-                    <td><input type="radio" name="selected_batch" value="{{ b.id }}"></td>
-                </tr>
-            {% empty %}
-                <tr>
-                    <td colspan="14" class="no-data">No batches yet.</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
+      <!-- Remark -->
+      <div class="form-row batch-row">
+        <label>Remark</label>
+        {{ batch_form.remark }}
+        {{ batch_form.remark.errors }}
+      </div>
+
+      <!-- Start / End buttons -->
+      <div class="form-row batch-row buttons-row">
+        <button type="submit" name="action" value="start_batch" class="btn btn-success">
+          Start Batch
+        </button>
+
+        <button type="submit" name="action" value="end_batch" class="btn btn-secondary" disabled>
+          End Batch
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- BOTTOM GRID: Last batches -->
+  <div class="payment-section">
+    <table class="payment-table batch-grid">
+      <thead>
+        <tr>
+          <th>BatchId</th>
+          <th>Supervisor</th>
+          <th>Category</th>
+          <th>Labour</th>
+          <th>Time Required</th>
+          <th>STD</th>
+          <th>Production Qty</th>
+          <th>Standard Density</th>
+          <th>Actual Density</th>
+          <th>Diff</th>
+          <th>Cancel Batch</th>
+          <th>Download Report</th>
+          <th>Select</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in batches %}
+          <tr>
+            <td>{{ b.id }}</td>
+            <td>{{ b.supervisor }}</td>
+            <td>{{ b.category }}</td>
+            <td>{{ b.labour }}</td>
+            <td>{{ b.time_required|floatformat:2 }}</td>
+            <td>STD</td>
+            <td>{{ b.production_qty }}</td>
+            <td>{{ b.std_density|floatformat:2 }}</td>
+            <td>{{ b.actual_density|floatformat:2 }}</td>
+            <td>{{ b.density_diff|floatformat:2 }}</td>
+            <td><a href="#" class="link-action">Cancel</a></td>
+            <td><a href="#" class="link-action">Download</a></td>
+            <td><input type="radio" name="selected_batch" value="{{ b.id }}"></td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="13" class="no-data">No batches yet.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
 </div>
 

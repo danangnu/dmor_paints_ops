@@ -6,6 +6,10 @@ from django.utils import timezone
 from django.contrib import messages
 from django.db import transaction
 from django.urls import reverse 
+from decimal import Decimal, InvalidOperation
+
+# IMPORTANT: import BOM from masters
+from masters.models import ProductBOM, ProductBOMItem
 
 def operation_dashboard(request):
     tiles = [
@@ -100,48 +104,175 @@ def factory_status(request):
     orders = FactoryOrder.objects.all().order_by("-order_id")
     return render(request, "operations/factory_status.html", {"orders": orders})
 
+DRAFT_KEY = "bom_draft"
+
+def _draft_get(request):
+    return request.session.get(DRAFT_KEY, {
+        "header": {
+            "supervisor": "",
+            "labour": "",
+            "category_id": "",
+            "base_qty": "",
+            "production_qty": "",
+            "remark": "",
+        },
+        "items": [],  # list of {"product_id": int, "product_name": str, "qty": float}
+        "show_after_calculate": False,
+    })
+
+
+def _draft_save(request, draft):
+    request.session[DRAFT_KEY] = draft
+    request.session.modified = True
+
+
+def _draft_clear(request):
+    if DRAFT_KEY in request.session:
+        del request.session[DRAFT_KEY]
+        request.session.modified = True
+
+
 def bom_production(request):
-    batch_form = BatchForm()
-    item_form = BatchItemForm()
+    draft = _draft_get(request)
+
+    # Build forms prefilled from draft (GET or after actions)
+    initial_header = {
+        "supervisor": draft["header"].get("supervisor", ""),
+        "labour": draft["header"].get("labour", ""),
+        # If Batch.category is FK, use "category": <id>
+        # If Batch.category is CharField, use "category": <string>
+        "category": draft["header"].get("category_id") or None,
+        "base_qty": draft["header"].get("base_qty", ""),
+        "production_qty": draft["header"].get("production_qty", ""),
+        "remark": draft["header"].get("remark", ""),
+    }
+
+    batch_form = BatchForm(initial=initial_header)
+
+    # product dropdown filtering depends on selected category (optional)
+    # Example: if category chosen, allow adding RM only. Adjust as needed.
+    item_product_qs = MasterProduct.objects.filter(product_type="RM").order_by("name")
+    item_form = BatchItemForm(product_qs=item_product_qs)
 
     if request.method == "POST":
-        action = request.POST.get("action")
+        action = request.POST.get("action") or ""
 
-        if action == "start_batch":
-            batch_form = BatchForm(request.POST)
-            item_form = BatchItemForm(request.POST)
+        # Always bind header form, because Calculate/Add should keep values
+        batch_form = BatchForm(request.POST)
 
-            if batch_form.is_valid():
-                batch = batch_form.save()
+        # Build item form too
+        item_form = BatchItemForm(request.POST, product_qs=item_product_qs)
 
-                # if product + qty filled, create first line
-                if item_form.is_valid() and item_form.cleaned_data.get("product"):
-                    BatchItem.objects.create(
-                        batch=batch,
-                        product=item_form.cleaned_data["product"],
-                        qty=item_form.cleaned_data["qty"],
-                    )
+        # --- helper to copy header fields into draft (so selection does not reset) ---
+        def sync_header_into_draft():
+            # If Batch.category is FK:
+            cat_id = request.POST.get("category") or request.POST.get("category_id") or ""
+            draft["header"] = {
+                "supervisor": request.POST.get("supervisor", "").strip(),
+                "labour": request.POST.get("labour", "").strip(),
+                "category_id": str(cat_id).strip(),
+                "base_qty": request.POST.get("base_qty", "").strip(),
+                "production_qty": request.POST.get("production_qty", "").strip(),
+                "remark": request.POST.get("remark", "").strip(),
+            }
 
-                return redirect("bom_production")
+        if action == "calculate":
+            if not batch_form.is_valid():
+                messages.error(request, "Please fill all required fields before Calculate.")
+            else:
+                sync_header_into_draft()
+                draft["show_after_calculate"] = True
+                _draft_save(request, draft)
+                messages.success(request, "Calculated. You can now add products.")
 
-        elif action == "end_batch":
-            batch_id = request.POST.get("batch_id")
-            if batch_id:
-                try:
-                    batch = Batch.objects.get(pk=batch_id)
-                    batch.status = "FINISHED"
-                    batch.ended_at = timezone.now()
+        elif action == "add_item":
+            # require Calculate first (matches your expected flow)
+            if not draft.get("show_after_calculate"):
+                messages.error(request, "Please click Calculate first.")
+            else:
+                sync_header_into_draft()
+
+                product_id = request.POST.get("product") or request.POST.get("product_to_add_id")
+                qty_raw = request.POST.get("qty") or request.POST.get("item_qty")
+
+                if not product_id:
+                    messages.error(request, "Please select a product to add.")
+                else:
+                    try:
+                        qty_val = float(qty_raw) if qty_raw not in (None, "",) else 0.0
+                    except ValueError:
+                        qty_val = 0.0
+
+                    if qty_val <= 0:
+                        messages.error(request, "Please enter Qty > 0.")
+                    else:
+                        p = MasterProduct.objects.filter(id=product_id).first()
+                        if not p:
+                            messages.error(request, "Invalid product selected.")
+                        else:
+                            # if already exists, update qty (legacy-like)
+                            found = False
+                            for it in draft["items"]:
+                                if str(it["product_id"]) == str(p.id):
+                                    it["qty"] = float(it["qty"]) + qty_val
+                                    found = True
+                                    break
+                            if not found:
+                                draft["items"].append({
+                                    "product_id": p.id,
+                                    "product_name": p.name,
+                                    "qty": qty_val,
+                                })
+
+                            _draft_save(request, draft)
+                            messages.success(request, "Product added.")
+
+        elif action == "delete_item":
+            delete_pid = request.POST.get("delete_product_id") or ""
+            if delete_pid:
+                draft["items"] = [it for it in draft["items"] if str(it["product_id"]) != str(delete_pid)]
+                _draft_save(request, draft)
+                messages.success(request, "Item deleted.")
+
+        elif action == "start_batch":
+            # Final save: create Batch + BatchItems from draft
+            if not batch_form.is_valid():
+                messages.error(request, "Please fix errors before Start Batch.")
+            else:
+                if not draft.get("items"):
+                    messages.error(request, "Please add at least one product item before Start Batch.")
+                else:
+                    batch = batch_form.save(commit=False)
+                    batch.started_at = timezone.now()
+                    batch.status = "RUNNING"
                     batch.save()
-                except Batch.DoesNotExist:
-                    pass
+
+                    for it in draft["items"]:
+                        BatchItem.objects.create(
+                            batch=batch,
+                            product_id=it["product_id"],
+                            qty=it["qty"],
+                        )
+
+                    _draft_clear(request)
+                    messages.success(request, f"Batch #{batch.id} started.")
+                    return redirect("bom_production")
+
+        elif action == "clear_draft":
+            _draft_clear(request)
             return redirect("bom_production")
 
-    # show latest 10 batches
+    # Show latest 10 batches
     batches = Batch.objects.order_by("-started_at")[:10]
 
     context = {
         "batch_form": batch_form,
         "item_form": item_form,
+
+        # Draft UI flags/data
+        "show_new_product_form": bool(draft.get("show_after_calculate")),
+        "draft_items": draft.get("items", []),
+
         "batches": batches,
     }
     return render(request, "operations/bom_production.html", context)

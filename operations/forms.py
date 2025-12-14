@@ -1,6 +1,7 @@
 # operations/forms.py
 from django import forms
 from .models import Order, Batch, BatchItem, Dispatch, Vehicle, MaterialInward, MasterProduct, Supplier, MaterialDiscard
+from masters.models import Employee, Product
 
 class OrderForm(forms.ModelForm):
     class Meta:
@@ -111,33 +112,73 @@ class OrderForm(forms.ModelForm):
         return cleaned
 
 class BatchForm(forms.ModelForm):
+    """
+    BOM Production header form
+    - supervisor: dropdown from masters.Employee
+    - labour: text input
+    - category: dropdown from masters.Product (BOM Category)
+    - base_qty: number
+    - production_qty: number
+    """
+
+    supervisor = forms.ModelChoiceField(
+        queryset=Employee.objects.filter(is_active=True).order_by("full_name", "id"),
+        empty_label="Select",
+        required=True,
+        widget=forms.Select(attrs={"class": "form-control slim"}),
+    )
+
+    category = forms.ModelChoiceField(
+        queryset=Product.objects.all().order_by("name", "id"),
+        empty_label="Select",
+        required=True,
+        widget=forms.Select(attrs={"class": "form-control slim"}),
+    )
+
+    labour = forms.CharField(
+        required=True,
+        widget=forms.TextInput(attrs={"class": "form-control slim", "placeholder": "Enter Labour"}),
+    )
+
+    base_qty = forms.DecimalField(
+        required=True,
+        widget=forms.NumberInput(attrs={"class": "form-control slim", "placeholder": "Qty"}),
+    )
+
+    production_qty = forms.DecimalField(
+        required=True,
+        widget=forms.NumberInput(attrs={"class": "form-control slim", "placeholder": "Production Qty"}),
+    )
+
+    remark = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={"class": "form-control slim", "rows": 2, "placeholder": "Remark"}),
+    )
+
     class Meta:
         model = Batch
-        fields = ["supervisor", "labour", "category", "base_qty", "production_qty", "remark"]
-        widgets = {
-            "supervisor": forms.TextInput(attrs={"class": "form-control slim", "placeholder": "Select Supervisor"}),
-            "labour": forms.NumberInput(attrs={"class": "form-control slim", "placeholder": "Enter Labour"}),
-            "category": forms.TextInput(attrs={"class": "form-control slim", "placeholder": "Category"}),
-            "base_qty": forms.NumberInput(attrs={"class": "form-control slim", "placeholder": "Qty"}),
-            "production_qty": forms.NumberInput(attrs={"class": "form-control slim", "placeholder": "Production Qty"}),
-            "remark": forms.Textarea(attrs={"class": "form-control slim", "rows": 2, "placeholder": "Remark"}),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # required like the red * in UI
-        for name in ["supervisor", "labour", "category", "base_qty", "production_qty"]:
-            self.fields[name].required = True
-
+        fields = ["supervisor", "labour", "category", "production_qty", "remark"]
 
 class BatchItemForm(forms.ModelForm):
+    product = forms.ModelChoiceField(
+        queryset=MasterProduct.objects.order_by("name", "id"),
+        empty_label="Select",
+        widget=forms.Select(attrs={"class": "form-control slim"}),
+        required=True,
+    )
+
     class Meta:
         model = BatchItem
         fields = ["product", "qty"]
         widgets = {
-            "product": forms.TextInput(attrs={"class": "form-control slim", "placeholder": "Product"}),
             "qty": forms.NumberInput(attrs={"class": "form-control slim", "placeholder": "Qty"}),
         }
+
+    def __init__(self, *args, **kwargs):
+        product_qs = kwargs.pop("product_qs", None)
+        super().__init__(*args, **kwargs)
+        if product_qs is not None:
+            self.fields["product"].queryset = product_qs
 
 class DispatchHeaderForm(forms.ModelForm):
     class Meta:
